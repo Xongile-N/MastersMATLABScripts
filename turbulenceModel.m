@@ -10,6 +10,7 @@
 function simI_corr=turbulenceModel(sampleRateOuter,samplesOuter, overSampleRate, toPlot)
 
 sampleRate=300;
+samplesOuter*sampleRate/sampleRateOuter
 samples=ceil(samplesOuter*sampleRate/sampleRateOuter)
 
 
@@ -62,6 +63,7 @@ upsampleFactor=overSampleRate/sampleRate
 simI_over=interp(simI,upsampleFactor);
 downSampleFactor=overSampleRate/sampleRateOuter
 simI_corr=decimate(simI_over,downSampleFactor);
+simI_corr=simI_corr(1:samplesOuter);
 % if(toPlot)
 % %Plot original and interpolated
 %  subplot(2,1,1)

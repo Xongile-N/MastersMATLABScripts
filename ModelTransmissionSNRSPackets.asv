@@ -65,11 +65,11 @@ for count=1:6
      waveFormRXA=awgn(waveFormRX,SNRS(index)); 
     [resBin,thresholds(count,index)]=clockRecoveryFrame(waveFormRXA,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
      [ErrorCount(count,index),BERS(count,index),Errors(count,index,:)]=biterr(resBin,bitStream);
-     framesRX=reshape(resBin,frameSize,[]).';
-     errorCounts=biterr(framesRX,OrigFrames,[],'row-wise');
+     frames=reshape(resBin,floor(frameSize),[]).';
+     errorCounts=biterr(frames,OrigFrames,[],'row-wise');
      packetErrors(count,index,:)=errorCounts;
-     for CRCIndex=1:packetCount
-          [~,CRCDetect(count,index,CRCIndex)]=crcDetect1(framesRX(CRCIndex,:).');
+     for count=1:packetCount
+          CRCDetect(count,index,packetCount)=crcDetect1;
      end
      maxErrors(count,index)=max(errorCounts);
      resBins(count,:)=resBin;
@@ -79,7 +79,7 @@ end
 maxErrors
 ErrorCount
 BERS
-CRCDetect(1,:,:);
+
 legendStrings=cell(size(BERS,1),1);
 
 semilogy(SNRS,BERS(1,:), '-*');
