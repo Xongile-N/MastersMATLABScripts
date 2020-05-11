@@ -1,7 +1,7 @@
 %Test Fountain
 
 %flag to control implementation
-LTFlag = 0;
+LTFlag = 1;
 
 %******
 %parameters
@@ -20,12 +20,12 @@ if floor(K/RS_Base) ~= K/RS_Base
 end
 NRaptorBig = 2^(ceil(log2(NRaptor + 1))) - 1;
 
-RaptorCoderRS = fec.rsenc(NRaptorBig, K/RS_Base);
+RaptorCoderRS = comm.RSEncoder(NRaptorBig, K/RS_Base);
 RaptorPuncRS = RaptorCoderRS.PuncturePattern;
 RaptorPuncture = NRaptorBig - NRaptor;
 RaptorPuncRS(end - RaptorPuncture + 1: end) = ~(RaptorPuncRS(end - RaptorPuncture + 1: end));
 RaptorCoderRS.PuncturePattern = RaptorPuncRS;
-RaptorDecoderRS = fec.rsdec(RaptorCoderRS);
+RaptorDecoderRS =  comm.RSDecoder(RaptorCoderRS);
 
 LTBase = 8; %base for codeword 
 MatrixBase = 2; %base for codeword 

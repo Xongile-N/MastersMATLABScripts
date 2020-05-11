@@ -19,7 +19,7 @@ LTPacket
 indices
 %testPacket=zeros(1,packetSize);
 for count =1:length(indices)
-LTPacket=bitxor(LTPacket,packets(indices,:));
+LTPacket=bitxor(LTPacket,packets
 end
 LTPacket
 test=packets(1,:).';
