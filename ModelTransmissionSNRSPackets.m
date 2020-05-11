@@ -1,7 +1,7 @@
 clear all;
 clc
 payloadSize=1000;
-packetCount=100;
+packetCount=500;
 %packetSize;
 bitCount=1000000;
 bitCount=payloadSize*packetCount;
