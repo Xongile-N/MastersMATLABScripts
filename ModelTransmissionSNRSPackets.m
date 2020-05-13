@@ -2,8 +2,10 @@ clear all;
 clc
 payloadSize=1000;
 packetCount=500;
+overheadThresh=100;
 %packetSize;
 bitCount=1000000;
+%rng('default');
 bitCount=payloadSize*packetCount;
 transmitFreq=1e5;
 samplesPerClock=4;
@@ -14,14 +16,19 @@ LFSRPoly=[15 14 0];
 payloadStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
 packets=reshape(payloadStream,payloadSize,[]).';
 [dist,cumulative]=RobustSoliton(packetCount,0.5,0.1);
-[LTPacket,indices]=LTCoder(packets,dist);
-LTPacket
-indices
-%testPacket=zeros(1,packetSize);
-for count =1:length(indices)
-LTPacket=bitxor(LTPacket,packets(indices,:));
-end
-LTPacket
+receivedPackets=zeros(size(packets,1)*overheadThresh,size(packets,2));
+receivedPacketDetails=zeros(size(receivedPackets,1),2)-1;%stores the current degree and the seed used. In that order
+decodedPackets=zeros(size(packets));
+decodePacketCheck=zeros(packetCount,1);
+decoded=false
+% indices
+% [LTPacket,indices,seedUsed]=LTCoder(packets,dist);
+% sum(LTPacket)
+%  for count =1:length(indices)
+%  LTPacket=bitxor(LTPacket,packets(indices(count),:));
+% end
+%  sum(LTPacket)
+ 
 test=packets(1,:).';
 sum(test-payloadStream(1:1000));
 size(packets)

@@ -1,0 +1,11 @@
+function [decodedPackets,decoded] = LTDecoderBP(receivedPackets,receivedPacketDetails,receivedPacketCount,totalPackets)
+decoded=false;
+if(isempty(find(receivedPacketDetails(:,2)==1)))
+    return
+end
+maximumDegree=max((receivedPacketDetails(:,2));
+indices=zeros(receivedPacketCount,maximumDegree)
+
+
+end
+

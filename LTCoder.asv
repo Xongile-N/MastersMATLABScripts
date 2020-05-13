@@ -6,7 +6,8 @@ trial=rand;
 cumulative=cumsum(degreeDistribution);
 degree=find(trial<cumulative,1,'first')
 rngSeed=randi(256)-1;
-rng(rngSeed);
+rng(rngSeed)
+indices=zeros(degree,1);
 indices=randi(size(packets,1),degree,1);
 % degrees=zeros(k,1);
 encodedPacket=zeros(1,size(packets,2));
