@@ -1,7 +1,7 @@
-function [decodedPackets,decodePacketsBool,decoded] = LTDecoderBP(receivedPackets,receivedPacketDetails,receivedPacketCount,totalPackets,decodePacketsOrig,decodePacketsOrigBool)
+function [decodedPackets,decodedPacketsBool,decoded] = LTDecoderBP(receivedPackets,receivedPacketDetails,receivedPacketCount,totalPackets,decodedPacketsOrig,decodedPacketsOrigBool)
 decoded=false;
-decodedPackets=decodePacketsOrig;
-decodePacketsBool=decodePacketsOrigBool;
+decodedPackets=decodedPacketsOrig;
+decodedPacketsBool=decodedPacketsOrigBool;
 if(isempty(find(receivedPacketDetails(:,1)==1)))
     return
 end
@@ -12,7 +12,7 @@ for count=1:receivedPacketCount
  loopIndices=randi(totalPackets,loopDeg,1)
  indices(count,loopIndices)=1;
 end
-[decodedPackets,decodePacketsBool] = LTDecoderBPMain(receivedPackets,receivedPacketDetails,receivedPacketCount,totalPackets,decodePacketsOrig,decodePacketsOrigBool,indices);
+[decodedPackets,decodedPacketsBool] = LTDecoderBPMain(receivedPackets,receivedPacketDetails,receivedPacketCount,totalPackets,decodedPacketsOrig,decodedPacketsOrigBool,indices);
 decoded=isempty(find(decodedPacketsBool==0))
 
 end
