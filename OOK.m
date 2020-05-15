@@ -2,7 +2,7 @@ function waveForm = OOK(bitStream,frequency, samplingFreq)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 bitRate=2*frequency;
-transmitTime=length(bitStream)/bitRate
+transmitTime=length(bitStream)/bitRate;
 timeSampleCount=samplingFreq*transmitTime;
 timeBase=(0:timeSampleCount-1)*(1/samplingFreq);
 basePeriod=1/frequency;

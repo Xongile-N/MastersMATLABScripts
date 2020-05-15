@@ -16,7 +16,6 @@ while canDecode
          decodedPackets(decIndex,:)=receivedPackets(index,:);% put decoded packet in the array of decoded packets
          decodedPacketsBool(decIndex)=1;
     end
-    decodedPackets
     index=1;
     while(index<=receivedPacketCount)%removes fully decoded packets
         if(receivedPacketDetails(index,1)~=1)% skip if degree is not one
@@ -38,20 +37,15 @@ while canDecode
             if(~indices(index,count))% if final packet is not part of the paacket at index, continue
                 continue
             end
-            index
+            index;
             receivedPackets(index,:)=bitxor(decodedPackets(count,:),receivedPackets(index,:)); % xor packet with endoded apckets that contain it
             indices(index,count)=0;% remove packet index
             receivedPacketDetails(index,1)=receivedPacketDetails(index,1)-1;% decrease degree
-            indices
+            indices;
                         index;
 
         end
     end
-    decodedPackets
-    decodedPacketsBool
-    receivedPackets
-    origPackets
-    indices
     canDecode=(~isempty(find(receivedPacketDetails(:,1)==1)));% check if there are still any packets with degree one. 
 
 end

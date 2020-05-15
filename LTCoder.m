@@ -1,10 +1,10 @@
-function [encodedPacket,indices,rngSeed] = LTCoder(packets,degreeDistribution)
+function [encodedPacket,degree,rngSeed] = LTCoder(packets,degreeDistribution)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 %[dist,cumulative]=RobustSoliton(k,delta,c);
 trial=rand;
 cumulative=cumsum(degreeDistribution);
-degree=find(trial<cumulative,1,'first')
+degree=find(trial<cumulative,1,'first');
 rngSeed=randi(256)-1;
 rng(rngSeed);
 indices=randi(size(packets,1),degree,1);
