@@ -10,9 +10,7 @@ while canDecode
          if(receivedPacketDetails(index,1)~=1)
              continue
          end
-         index;
-         1;
-         decIndex=find(indices(index,:))% Find the index of the packet that has been recovered
+         decIndex=find(indices(index,:));% Find the index of the packet that has been recovered
          decodedPackets(decIndex,:)=receivedPackets(index,:);% put decoded packet in the array of decoded packets
          decodedPacketsBool(decIndex)=1;
     end
@@ -26,7 +24,6 @@ while canDecode
         receivedPackets(index,:)=[];%remove completely decoded packet
         receivedPacketDetails(index,:)=[];%remove details of completely decoded packet
         indices(index,:)=[];
-        index;
     end
 
     for count=1:totalPackets%use existing recovered packets to decode
@@ -38,12 +35,9 @@ while canDecode
             if(~indices(index,count))% if final packet is not part of the paacket at index, continue
                 continue
             end
-            index;
             receivedPackets(index,:)=bitxor(decodedPackets(count,:),receivedPackets(index,:)); % xor packet with endoded apckets that contain it
             indices(index,count)=0;% remove packet index
             receivedPacketDetails(index,1)=receivedPacketDetails(index,1)-1;% decrease degree
-            indices;
-                        index;
 
         end
     end

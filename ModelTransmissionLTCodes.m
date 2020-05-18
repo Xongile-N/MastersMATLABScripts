@@ -88,10 +88,6 @@ for count=1:6
         while (~decoded&&~overThresh)
             recCount=recCount+1;
             [packetLT,degree,RNGSeed]=LTCoder(packets,dist);
-            if(degree==1)
-              count*100
-              recIndex
-            end
             degreeBin=de2bi(degree,degreeBits,'left-msb');
             KBin=de2bi(packetCount,KBits,'left-msb');
             seedBin=de2bi(RNGSeed,seedBits,'left-msb');
@@ -135,12 +131,14 @@ for count=1:6
         decodedCount(count,index)=sum(decodedPacketCheck);
         if(decoded)
             rates(count,index)=packetCount/recCount;
+            [~,BERS(count,index)]=biterr(decodedPackets,packets);
         end
     end
 end
 rates
 recCountA
 decodedCount
+BERS
 %legendStrings=cell(size(rates,1),1);
 %intactCount
 %Erasures
