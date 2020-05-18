@@ -12,7 +12,7 @@ while canDecode
          end
          index;
          1;
-         decIndex=find(indices(index,:));% Find the index of the packet that has been recovered
+         decIndex=find(indices(index,:))% Find the index of the packet that has been recovered
          decodedPackets(decIndex,:)=receivedPackets(index,:);% put decoded packet in the array of decoded packets
          decodedPacketsBool(decIndex)=1;
     end
@@ -26,6 +26,7 @@ while canDecode
         receivedPackets(index,:)=[];%remove completely decoded packet
         receivedPacketDetails(index,:)=[];%remove details of completely decoded packet
         indices(index,:)=[];
+        index;
     end
 
     for count=1:totalPackets%use existing recovered packets to decode

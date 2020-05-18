@@ -1,11 +1,11 @@
 clear all;
 clc
 payloadSize=1000;
-packetCount=50;
-overheadThresh=15;
+packetCount=10;
+overheadThresh=20;
 %packetSize;
 bitCount=1000000;
-rng(packetCount);
+%rng(packetCount);
 bitCount=payloadSize*packetCount;
 transmitFreq=1e5;
 samplesPerClock=3;
@@ -15,7 +15,7 @@ LFSRSeed=[1 0 1 0 1 1 1 0 1 0 1 0 1 0 0];
 LFSRPoly=[15 14 0];
 payloadStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
 packets=reshape(payloadStream,payloadSize,[]).';
-[dist,cumulative]=RobustSoliton(packetCount,0.5,0.1);
+[dist,~]=RobustSoliton(packetCount,0.5,0.1);
 
 % indices
 % [LTPacket,indices,seedUsed]=LTCoder(packets,dist);
@@ -42,7 +42,6 @@ crcGen1 = comm.CRCGenerator(...
 frameSize=payloadSize+CRCLength+LTHeaderLength;
 
 frames=zeros(packetCount,frameSize);
-  
 bitStream=reshape(frames.',[],1);
 bitCount=length(bitStream);
 waveFormTXTemp=OOK(bitStream,transmitFreq,samplingFreq);
@@ -74,19 +73,25 @@ decodedableCount=recCountA;
 
 for count=1:6
     count
-
     for index =1:length(SNRS)
-    loopTurbulence=turbulence;
-    recCount=0;
-    recIndex=1;
-receivedPackets=zeros(size(packets,1)*overheadThresh,size(packets,2));
-receivedPacketDetails=zeros(size(receivedPackets,1),2)-1;%stores the current degree and the seed used. In that order
-decodedPackets=zeros(size(packets));
-decodedPacketCheck=zeros(packetCount,1);
-decoded=false;    overThresh=false;
+        loopTurbulence=turbulence;
+        recCount=0;
+        recIndex=1;
+        receivedPackets=zeros(size(packets,1)*overheadThresh,size(packets,2));
+        receivedPacketDetails=zeros(size(receivedPackets,1),2)-1;%stores the current degree and the seed used. In that order
+        decodedPackets=zeros(size(packets));
+        decodedPacketCheck=zeros(packetCount,1);
+        decoded=false;    
+        overThresh=false;
+        rng('default');
+
         while (~decoded&&~overThresh)
             recCount=recCount+1;
             [packetLT,degree,RNGSeed]=LTCoder(packets,dist);
+            if(degree==1)
+              count*100
+              recIndex
+            end
             degreeBin=de2bi(degree,degreeBits,'left-msb');
             KBin=de2bi(packetCount,KBits,'left-msb');
             seedBin=de2bi(RNGSeed,seedBits,'left-msb');
@@ -120,9 +125,7 @@ decoded=false;    overThresh=false;
                  receivedPacketDetails(recIndex,:)=[degreeDe,seedDe];
                  [decodedPackets,decodedPacketCheck,decoded]=LTDecoderBP(receivedPackets,receivedPacketDetails,recIndex,KDe,decodedPackets,decodedPacketCheck);
                   recIndex=recIndex+1;
-                  if(degree==1)
-                    count
-                  end
+
                   if(degreeDe==1)
                   decodedableCount(count,index)=1+decodedableCount(count,index);
                   end

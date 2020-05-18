@@ -2,10 +2,10 @@ clear all;
 clc
 payloadSize=1000;
 packetCount=50;
-overheadThresh=2;
+overheadThresh=50;
 %packetSize;
 bitCount=1000000;
-%rng('default');
+%rng(packetCount);
 bitCount=payloadSize*packetCount;
 transmitFreq=1e5;
 samplesPerClock=3;
@@ -15,12 +15,8 @@ LFSRSeed=[1 0 1 0 1 1 1 0 1 0 1 0 1 0 0];
 LFSRPoly=[15 14 0];
 payloadStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
 packets=reshape(payloadStream,payloadSize,[]).';
-[dist,cumulative]=RobustSoliton(packetCount,0.5,0.1);
-receivedPackets=zeros(size(packets,1)*overheadThresh,size(packets,2));
-receivedPacketDetails=zeros(size(receivedPackets,1),2)-1;%stores the current degree and the seed used. In that order
-decodedPackets=zeros(size(packets));
-decodedPacketCheck=zeros(packetCount,1);
-decoded=false;
+[dist,~]=RobustSoliton(packetCount,0.5,0.1);
+
 % indices
 % [LTPacket,indices,seedUsed]=LTCoder(packets,dist);
 % sum(LTPacket)
@@ -46,7 +42,6 @@ crcGen1 = comm.CRCGenerator(...
 frameSize=payloadSize+CRCLength+LTHeaderLength;
 
 frames=zeros(packetCount,frameSize);
-  
 bitStream=reshape(frames.',[],1);
 bitCount=length(bitStream);
 waveFormTXTemp=OOK(bitStream,transmitFreq,samplingFreq);
@@ -73,18 +68,30 @@ crcDetect1=comm.CRCDetector(...
     'FinalXOR', 1);
 rates=BERS+1/overheadThresh;
 recCountA=BERS;
+decodedCount=recCountA;
+decodedableCount=recCountA;
+
 for count=1:6
     count
-    loopTurbulence=turbulence;
-    recCount=0;
-    recIndex=1;
-    decoded=false;
-    overThresh=false;
     for index =1:length(SNRS)
+        loopTurbulence=turbulence;
+        recCount=0;
+        recIndex=1;
+        receivedPackets=zeros(size(packets,1)*overheadThresh,size(packets,2));
+        receivedPacketDetails=zeros(size(receivedPackets,1),2)-1;%stores the current degree and the seed used. In that order
+        decodedPackets=zeros(size(packets));
+        decodedPacketCheck=zeros(packetCount,1);
+        decoded=false;    
+        overThresh=false;
+        rng('default');
 
         while (~decoded&&~overThresh)
             recCount=recCount+1;
-            [packetLT,degree,RNGSeed]=LTCoder(packets,dist)
+            [packetLT,degree,RNGSeed]=LTCoder(packets,dist);
+            if(degree==1)
+              count*100
+              recIndex
+            end
             degreeBin=de2bi(degree,degreeBits,'left-msb');
             KBin=de2bi(packetCount,KBits,'left-msb');
             seedBin=de2bi(RNGSeed,seedBits,'left-msb');
@@ -97,10 +104,9 @@ for count=1:6
             if(count<4)
                 waveFormRX=2*waveFormTX.';
             else
-                waveFormRX=2*(waveFormTX.').*loopTurbulence(1:frameSize);
-                loopTurbulence(1:frameSize)=[];
+                waveFormRX=2*(waveFormTX.').*loopTurbulence(1:length(waveFormTX));
+                loopTurbulence(1:length(waveFormTX))=[];
             end
-            [count index 2]
              waveFormRXA=awgn(waveFormRX,SNRS(index)); 
             [resBin,thresholds(count,index)]=clockRecoveryFrame(waveFormRXA,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
              %[ErrorCount(count,index),BERS(count,index),Errors(count,index,:)]=biterr(resBin,bitStream);
@@ -119,39 +125,46 @@ for count=1:6
                  receivedPacketDetails(recIndex,:)=[degreeDe,seedDe];
                  [decodedPackets,decodedPacketCheck,decoded]=LTDecoderBP(receivedPackets,receivedPacketDetails,recIndex,KDe,decodedPackets,decodedPacketCheck);
                   recIndex=recIndex+1;
+
+                  if(degreeDe==1)
+                  decodedableCount(count,index)=1+decodedableCount(count,index);
+                  end
              end
              overThresh=recCount>=packetCount*overheadThresh;
         end
+        decodedCount(count,index)=sum(decodedPacketCheck);
         if(decoded)
             rates(count,index)=packetCount/recCount;
         end
     end
 end
-
-legendStrings=cell(size(rates,1),1);
+rates
+recCountA
+decodedCount
+%legendStrings=cell(size(rates,1),1);
 %intactCount
 %Erasures
-semilogy(SNRS,rates(1,:), '-*');
-hold on
-
-legendStrings{1}=['AWGN Mean threshold'];
-%intactCount
-semilogy(SNRS,rates(2,:), '-*');
-legendStrings{2}=['AWGN 0.5 threshold'];
-semilogy(SNRS,rates(3,:), '-*');
-legendStrings{3}=['AWGN Mean threshold on frames'];
-semilogy(SNRS,rates(4,:), '-*');
-legendStrings{4}=['AWGN + Turbulence Mean threshold'];
-
-
-semilogy(SNRS,rates(5,:), '-*');
-legendStrings{5}=['AWGN + Turbulence 0.5 threshold'];
-    
-semilogy(SNRS,rates(6,:), '-*');
-legendStrings{6}=['AWGN + Turbulence Mean threshold on frames'];
-
-grid
-ylabel('rates');
-xlabel('SNR(dB)');
-legend(legendStrings);
-hold off;
+% semilogy(SNRS,rates(1,:), '-*');
+% hold on
+% 
+% legendStrings{1}=['AWGN Mean threshold'];
+% %intactCount
+% semilogy(SNRS,rates(2,:), '-*');
+% legendStrings{2}=['AWGN 0.5 threshold'];
+% semilogy(SNRS,rates(3,:), '-*');
+% legendStrings{3}=['AWGN Mean threshold on frames'];
+% semilogy(SNRS,rates(4,:), '-*');
+% legendStrings{4}=['AWGN + Turbulence Mean threshold'];
+% 
+% 
+% semilogy(SNRS,rates(5,:), '-*');
+% legendStrings{5}=['AWGN + Turbulence 0.5 threshold'];
+%     
+% semilogy(SNRS,rates(6,:), '-*');
+% legendStrings{6}=['AWGN + Turbulence Mean threshold on frames'];
+% 
+% grid
+% ylabel('rates');
+% xlabel('SNR(dB)');
+% legend(legendStrings);
+% hold off;

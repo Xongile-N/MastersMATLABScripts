@@ -12,7 +12,7 @@ for count=1:receivedPacketCount
  loopIndices=randi(totalPackets,loopDeg,1);
  indices(count,loopIndices)=1;
 end
-[decodedPackets,decodedPacketsBool] = LTDecoderBPMain(receivedPackets,receivedPacketDetails,receivedPacketCount,totalPackets,decodedPacketsOrig,decodedPacketsOrigBool,indices);
+[decodedPackets,decodedPacketsBool] = LTDecoderBPMain(receivedPackets(1:receivedPacketCount,:),receivedPacketDetails(1:receivedPacketCount,:),receivedPacketCount,totalPackets,decodedPacketsOrig,decodedPacketsOrigBool,indices);
 decoded=isempty(find(decodedPacketsBool==0));
 
 end
