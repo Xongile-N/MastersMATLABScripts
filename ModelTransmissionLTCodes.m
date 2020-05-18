@@ -83,7 +83,7 @@ for count=1:6
         decodedPacketCheck=zeros(packetCount,1);
         decoded=false;    
         overThresh=false;
-        rng('default');
+        %rng('default');
 
         while (~decoded&&~overThresh)
             recCount=recCount+1;

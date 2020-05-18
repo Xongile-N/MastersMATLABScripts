@@ -10,12 +10,14 @@ rng(rngSeed);
 indices=randi(size(packets,1),degree,1);
 % degrees=zeros(k,1);
 encodedPacket=zeros(1,size(packets,2));
+indexArray=zeros(size(packets,1),1)
 for count=1:degree
     encodedPacket=bitxor(encodedPacket,packets(indices(count),:));
+    indexArray(count)=bitxor
 %     trial=rand;
 %     degrees(count)=find(trial<cumulative,1,'first');
 end
-%degree=sum(indexArray);
+degree=sum(indexArray);
 %histogram(degrees,1:k)
 end
 
