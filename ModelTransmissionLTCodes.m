@@ -1,7 +1,7 @@
 clear all;
 clc
 payloadSize=1000;
-packetCount=10;
+packetCount=20;
 overheadThresh=20;
 %packetSize;
 bitCount=1000000;
