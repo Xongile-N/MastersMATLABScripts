@@ -18,6 +18,5 @@ end
 receivedPacketDetails(1:receivedPacketCount,1)=sum(indices,2);
 [decodedPackets,decodedPacketsBool] = LTDecoderBPMain(receivedPackets(1:receivedPacketCount,:),receivedPacketDetails(1:receivedPacketCount,:),receivedPacketCount,totalPackets,decodedPacketsOrig,decodedPacketsOrigBool,indices);
 decoded=isempty(find(decodedPacketsBool==0));
-
 end
 

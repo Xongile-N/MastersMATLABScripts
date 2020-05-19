@@ -1,10 +1,11 @@
 clear all;
-clc
+clc;
+
 payloadSize=1000;
-packetCount=20;
-overheadThresh=20;
+packetCount=150;
+overheadThresh=10;
+        rng('default');
 %packetSize;
-bitCount=1000000;
 %rng(packetCount);
 bitCount=payloadSize*packetCount;
 transmitFreq=1e5;
@@ -31,7 +32,7 @@ size(packets)
 CRCLength=32;
 degreeBits=16;
 KBits=16;
-seedBits=8;
+seedBits=16;
 LTHeaderLength=degreeBits+KBits+seedBits; %16 bits for K, 16 bits for degree and 8 bits for seed
 poly = [32,26,23,22,16,12,11,10,8,7,5,4,2,1,0];
 crcGen1 = comm.CRCGenerator(...
@@ -68,9 +69,10 @@ crcDetect1=comm.CRCDetector(...
     'FinalXOR', 1);
 rates=BERS+1/overheadThresh;
 recCountA=BERS;
+minDeg=BERS;
 decodedCount=recCountA;
 decodedableCount=recCountA;
-
+BERS=BERS+1;
 for count=1:6
     count
     for index =1:length(SNRS)
@@ -83,11 +85,11 @@ for count=1:6
         decodedPacketCheck=zeros(packetCount,1);
         decoded=false;    
         overThresh=false;
-        %rng('default');
+rng('shuffle')
 
         while (~decoded&&~overThresh)
             recCount=recCount+1;
-            [packetLT,degree,RNGSeed]=LTCoder(packets,dist);
+            [packetLT,degree,RNGSeed]=LTCoder(packets,dist,seedBits);
             degreeBin=de2bi(degree,degreeBits,'left-msb');
             KBin=de2bi(packetCount,KBits,'left-msb');
             seedBin=de2bi(RNGSeed,seedBits,'left-msb');
@@ -128,6 +130,9 @@ for count=1:6
              end
              overThresh=recCount>=packetCount*overheadThresh;
         end
+        if(recCountA(count,index)>0)
+        minDeg(count,index)=min(receivedPacketDetails(1:recCountA(count,index),1));
+        end
         decodedCount(count,index)=sum(decodedPacketCheck);
         if(decoded)
             rates(count,index)=packetCount/recCount;
@@ -139,30 +144,29 @@ rates
 recCountA
 decodedCount
 BERS
-%legendStrings=cell(size(rates,1),1);
+minDeg
+legendStrings=cell(size(rates,1),1);
+semilogy(SNRS,rates(1,:), '-*');
+hold on
+
+legendStrings{1}=['AWGN Mean threshold'];
 %intactCount
-%Erasures
-% semilogy(SNRS,rates(1,:), '-*');
-% hold on
-% 
-% legendStrings{1}=['AWGN Mean threshold'];
-% %intactCount
-% semilogy(SNRS,rates(2,:), '-*');
-% legendStrings{2}=['AWGN 0.5 threshold'];
-% semilogy(SNRS,rates(3,:), '-*');
-% legendStrings{3}=['AWGN Mean threshold on frames'];
-% semilogy(SNRS,rates(4,:), '-*');
-% legendStrings{4}=['AWGN + Turbulence Mean threshold'];
-% 
-% 
-% semilogy(SNRS,rates(5,:), '-*');
-% legendStrings{5}=['AWGN + Turbulence 0.5 threshold'];
-%     
-% semilogy(SNRS,rates(6,:), '-*');
-% legendStrings{6}=['AWGN + Turbulence Mean threshold on frames'];
-% 
-% grid
-% ylabel('rates');
-% xlabel('SNR(dB)');
-% legend(legendStrings);
-% hold off;
+semilogy(SNRS,rates(2,:), '-*');
+legendStrings{2}=['AWGN 0.5 threshold'];
+semilogy(SNRS,rates(3,:), '-*');
+legendStrings{3}=['AWGN Mean threshold on frames'];
+semilogy(SNRS,rates(4,:), '-*');
+legendStrings{4}=['AWGN + Turbulence Mean threshold'];
+
+
+semilogy(SNRS,rates(5,:), '-*');
+legendStrings{5}=['AWGN + Turbulence 0.5 threshold'];
+    
+semilogy(SNRS,rates(6,:), '-*');
+legendStrings{6}=['AWGN + Turbulence Mean threshold on frames'];
+
+grid
+ylabel('rates');
+xlabel('SNR(dB)');
+legend(legendStrings);
+hold off;

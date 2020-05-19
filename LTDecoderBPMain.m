@@ -2,7 +2,6 @@ function [decodedPackets,decodedPacketsBool] = LTDecoderBPMain(receivedPackets,r
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 canDecode=true;
-origPackets=receivedPackets;
 decodedPackets=decodedPacketsOrig;
 decodedPacketsBool=decodedPacketsOrigBool;
 while canDecode
