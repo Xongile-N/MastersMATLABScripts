@@ -2,9 +2,10 @@ clear all;
 clc;
 
 payloadSize=1000;
-packetCount=150;
+packetCount=1000;
 overheadThresh=10;
-        rng('default');
+packetsPerIteration=10;
+        rng('shuffle');
 %packetSize;
 %rng(packetCount);
 bitCount=payloadSize*packetCount;
@@ -48,7 +49,7 @@ bitCount=length(bitStream);
 waveFormTXTemp=OOK(bitStream,transmitFreq,samplingFreq);
 overThresh=false;
  turbulence=turbulenceModelTime(samplingFreq,length(waveFormTXTemp), upSampleFreq, false,overheadThresh);
- SNRS=(6:16);
+ SNRS=(2:8)*2;
 BERS=zeros(6,length(SNRS));
 Errors=zeros(2,length(SNRS),length(bitStream));
 thresholds=BERS;
@@ -73,9 +74,11 @@ minDeg=BERS;
 decodedCount=recCountA;
 decodedableCount=recCountA;
 BERS=BERS+1;
-for count=1:6
-    count
+configs=[3 4 6];% choose which configs to test.
+for index0=1:length(configs)
+    count=configs(index0)
     for index =1:length(SNRS)
+        index
         loopTurbulence=turbulence;
         recCount=0;
         recIndex=1;
@@ -140,11 +143,11 @@ rng('shuffle')
         end
     end
 end
-rates
-recCountA
-decodedCount
-BERS
-minDeg
+ratesC=rates(configs,:)
+recCountAC=recCountA(configs,:)
+decodedCountC=decodedCount(configs,:)
+BERSC=BERS(configs,:)
+minDegC=minDeg(configs,:)
 legendStrings=cell(size(rates,1),1);
 semilogy(SNRS,rates(1,:), '-*');
 hold on

@@ -75,6 +75,8 @@ decodedCount=recCountA;
 decodedableCount=recCountA;
 BERS=BERS+1;
 configs=[3 4 6];% choose which configs to test.
+frames=zeros(packetsPerIteration,frameSize);
+
 for index0=1:length(configs)
     count=configs(index0)
     for index =1:length(SNRS)
@@ -91,17 +93,19 @@ for index0=1:length(configs)
 rng('shuffle')
 
         while (~decoded&&~overThresh)
-            recCount=recCount+1;
-            [packetLT,degree,RNGSeed]=LTCoder(packets,dist,seedBits);
-            degreeBin=de2bi(degree,degreeBits,'left-msb');
-            KBin=de2bi(packetCount,KBits,'left-msb');
-            seedBin=de2bi(RNGSeed,seedBits,'left-msb');
-            degBitsIndex=payloadSize+1;
-            KBitsIndex=degBitsIndex+degreeBits;
-            seedBitsIndex=KBitsIndex+KBits;
-            payload=[packetLT degreeBin KBin seedBin];
-            frame=crcGen1(payload.');  
-            waveFormTX=OOK(frame,transmitFreq,samplingFreq);
+            for packCount=1:packetsPerIteration
+                recCount=recCount+1;
+                [packetLT,degree,RNGSeed]=LTCoder(packets,dist,seedBits);
+                degreeBin=de2bi(degree,degreeBits,'left-msb');
+                KBin=de2bi(packetCount,KBits,'left-msb');
+                seedBin=de2bi(RNGSeed,seedBits,'left-msb');
+                degBitsIndex=payloadSize+1;
+                KBitsIndex=degBitsIndex+degreeBits;
+                seedBitsIndex=KBitsIndex+KBits;
+                payload=[packetLT degreeBin KBin seedBin];
+                frames(packCount,:)=crcGen1(payload.'); 
+            end
+            waveFormTX=OOK(reshape(frames.',[],1),transmitFreq,samplingFreq);
             if(count<4)
                 waveFormRX=2*waveFormTX.';
             else
@@ -111,27 +115,32 @@ rng('shuffle')
              waveFormRXA=awgn(waveFormRX,SNRS(index)); 
             [resBin,thresholds(count,index)]=clockRecoveryFrame(waveFormRXA,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
              %[ErrorCount(count,index),BERS(count,index),Errors(count,index,:)]=biterr(resBin,bitStream);
-             %framesRX=reshape(resBin,frameSize,[]).';
+             framesRX=reshape(resBin,frameSize,[]).';
              frameRX=resBin;
-             [payloadRX,CRCDetectFrame]=crcDetect1(frameRX);
-             if(~CRCDetectFrame)
-                 receivedPackets(recIndex,:)=payloadRX(1:payloadSize).';
-                 degRBits=payloadRX(degBitsIndex:degBitsIndex+degreeBits-1).';
-                 KRBits=payloadRX(KBitsIndex:KBitsIndex+KBits-1).';
-                 seedRBits=payloadRX(seedBitsIndex:seedBitsIndex+seedBits-1).';
-                 degreeDe=bi2de(degRBits,'left-msb');
-                KDe=bi2de(KRBits,'left-msb');
-                seedDe=bi2de(seedRBits,'left-msb');
-                recCountA(count,index)=recCountA(count,index)+1;
-                 receivedPacketDetails(recIndex,:)=[degreeDe,seedDe];
+             intact=false;
+            for packCount=1:packetsPerIteration
+                 [payloadRX,CRCDetectFrame]=crcDetect1(framesRX(packCount,:));
+                 if(~CRCDetectFrame)
+                    receivedPackets(recIndex,:)=payloadRX(1:payloadSize).';
+                    degRBits=payloadRX(degBitsIndex:degBitsIndex+degreeBits-1).';
+                    KRBits=payloadRX(KBitsIndex:KBitsIndex+KBits-1).';
+                    seedRBits=payloadRX(seedBitsIndex:seedBitsIndex+seedBits-1).';
+                    degreeDe=bi2de(degRBits,'left-msb');
+                    KDe=bi2de(KRBits,'left-msb');
+                    seedDe=bi2de(seedRBits,'left-msb');
+                    recCountA(count,index)=recCountA(count,index)+1;
+                    receivedPacketDetails(recIndex,:)=[degreeDe,seedDe];
+                    recIndex=recIndex+1;
+                    intact=true
+                    if(degreeDe==1)
+                        decodedableCount(count,index)=1+decodedableCount(count,index);
+                    end
+                 end
+            end
+            if(intact)
                  [decodedPackets,decodedPacketCheck,decoded]=LTDecoderBP(receivedPackets,receivedPacketDetails,recIndex,KDe,decodedPackets,decodedPacketCheck);
-                  recIndex=recIndex+1;
-
-                  if(degreeDe==1)
-                  decodedableCount(count,index)=1+decodedableCount(count,index);
-                  end
-             end
-             overThresh=recCount>=packetCount*overheadThresh;
+            end
+            overThresh=recCount>=packetCount*overheadThresh;
         end
         if(recCountA(count,index)>0)
         minDeg(count,index)=min(receivedPacketDetails(1:recCountA(count,index),1));
