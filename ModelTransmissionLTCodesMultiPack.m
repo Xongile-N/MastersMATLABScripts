@@ -2,9 +2,9 @@ clear all;
 clc;
 
 payloadSize=1000;
-packetCount=1000;
-overheadThresh=10;
-packetsPerIteration=10;
+packetCount=400;
+overheadThresh=20;
+packetsPerIteration=packetCount/20;
         rng('shuffle');
 %packetSize;
 %rng(packetCount);
@@ -17,7 +17,7 @@ LFSRSeed=[1 0 1 0 1 1 1 0 1 0 1 0 1 0 0];
 LFSRPoly=[15 14 0];
 payloadStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
 packets=reshape(payloadStream,payloadSize,[]).';
-[dist,~]=RobustSoliton(packetCount,0.5,0.1);
+[dist,~]=RobustSoliton(packetCount,0.01,0.1);
 
 % indices
 % [LTPacket,indices,seedUsed]=LTCoder(packets,dist);
@@ -68,13 +68,13 @@ crcDetect1=comm.CRCDetector(...
     'InitialConditions', 1, ...
     'DirectMethod', true, ...
     'FinalXOR', 1);
-rates=BERS+1/overheadThresh;
+rates=BERS;
 recCountA=BERS;
 minDeg=BERS;
 decodedCount=recCountA;
 decodedableCount=recCountA;
 BERS=BERS+1;
-configs=[3 4 6];% choose which configs to test.
+configs=[3 6];% choose which configs to test.
 frames=zeros(packetsPerIteration,frameSize);
 
 for index0=1:length(configs)
@@ -119,7 +119,7 @@ rng('shuffle')
              frameRX=resBin;
              intact=false;
             for packCount=1:packetsPerIteration
-                 [payloadRX,CRCDetectFrame]=crcDetect1(framesRX(packCount,:));
+                 [payloadRX,CRCDetectFrame]=crcDetect1(framesRX(packCount,:).');
                  if(~CRCDetectFrame)
                     receivedPackets(recIndex,:)=payloadRX(1:payloadSize).';
                     degRBits=payloadRX(degBitsIndex:degBitsIndex+degreeBits-1).';
@@ -131,14 +131,14 @@ rng('shuffle')
                     recCountA(count,index)=recCountA(count,index)+1;
                     receivedPacketDetails(recIndex,:)=[degreeDe,seedDe];
                     recIndex=recIndex+1;
-                    intact=true
+                    intact=true;
                     if(degreeDe==1)
                         decodedableCount(count,index)=1+decodedableCount(count,index);
                     end
                  end
             end
             if(intact)
-                 [decodedPackets,decodedPacketCheck,decoded]=LTDecoderBP(receivedPackets,receivedPacketDetails,recIndex,KDe,decodedPackets,decodedPacketCheck);
+                 [decodedPackets,decodedPacketCheck,decoded]=LTDecoderBP(receivedPackets,receivedPacketDetails,recIndex-1,KDe,decodedPackets,decodedPacketCheck);
             end
             overThresh=recCount>=packetCount*overheadThresh;
         end
@@ -152,7 +152,11 @@ rng('shuffle')
         end
     end
 end
-ratesC=rates(configs,:)
+overHeads=(rates(configs,:));
+for count=1:length(overHeads)
+overHeads(count)=(1/overHeads(count))-1;
+end
+overHeads
 recCountAC=recCountA(configs,:)
 decodedCountC=decodedCount(configs,:)
 BERSC=BERS(configs,:)

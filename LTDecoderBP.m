@@ -2,7 +2,7 @@ function [decodedPackets,decodedPacketsBool,decoded] = LTDecoderBP(receivedPacke
 decoded=false;
 decodedPackets=decodedPacketsOrig;
 decodedPacketsBool=decodedPacketsOrigBool;
-if(isempty(find(receivedPacketDetails(:,1)==1)))
+if(isempty(find(receivedPacketDetails(:,1)==1))||totalPackets>receivedPacketCount)
     return
 end
 indices=zeros(receivedPacketCount,totalPackets);
