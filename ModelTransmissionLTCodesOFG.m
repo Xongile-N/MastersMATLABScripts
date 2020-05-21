@@ -2,8 +2,8 @@ clear all;
 clc;
 
 payloadSize=1000;
-packetCount=1000;
-overheadThresh=10;
+packetCount=10;
+overheadThresh=100;
 packetsPerIteration=10;
         rng('shuffle');
 %packetSize;
@@ -71,10 +71,12 @@ crcDetect1=comm.CRCDetector(...
 rates=BERS+1/overheadThresh;
 recCountA=BERS;
 minDeg=BERS;
-decodedCount=recCountA;
+decodedCheck=recCountA;
 decodedableCount=recCountA;
 BERS=BERS+1;
-configs=[3 4 6];% choose which configs to test.
+
+configs=[3 6];% choose which configs to test.
+packets(1,1:15)
 for index0=1:length(configs)
     count=configs(index0)
     for index =1:length(SNRS)
@@ -89,7 +91,7 @@ for index0=1:length(configs)
         decoded=false;    
         overThresh=false;
 rng('shuffle')
-
+G=zeros(packetCount);
         while (~decoded&&~overThresh)
             recCount=recCount+1;
             [packetLT,degree,RNGSeed]=LTCoder(packets,dist,seedBits);
@@ -115,7 +117,7 @@ rng('shuffle')
              frameRX=resBin;
              [payloadRX,CRCDetectFrame]=crcDetect1(frameRX);
              if(~CRCDetectFrame)
-                 receivedPackets(recIndex,:)=payloadRX(1:payloadSize).';
+                 newPacket=payloadRX(1:payloadSize).';
                  degRBits=payloadRX(degBitsIndex:degBitsIndex+degreeBits-1).';
                  KRBits=payloadRX(KBitsIndex:KBitsIndex+KBits-1).';
                  seedRBits=payloadRX(seedBitsIndex:seedBitsIndex+seedBits-1).';
@@ -123,8 +125,8 @@ rng('shuffle')
                 KDe=bi2de(KRBits,'left-msb');
                 seedDe=bi2de(seedRBits,'left-msb');
                 recCountA(count,index)=recCountA(count,index)+1;
-                 receivedPacketDetails(recIndex,:)=[degreeDe,seedDe];
-                 [decodedPackets,decodedPacketCheck,decoded]=LTDecoderBP(receivedPackets,receivedPacketDetails,recIndex,KDe,decodedPackets,decodedPacketCheck);
+                newPacketDetails=[degreeDe,seedDe];
+                 [decodedPackets,decoded,G]=LTDecoderOFG(newPacket,newPacketDetails,1,KDe,G,decodedPackets);
                   recIndex=recIndex+1;
 
                   if(degreeDe==1)
@@ -133,43 +135,43 @@ rng('shuffle')
              end
              overThresh=recCount>=packetCount*overheadThresh;
         end
-        if(recCountA(count,index)>0)
-        minDeg(count,index)=min(receivedPacketDetails(1:recCountA(count,index),1));
-        end
-        decodedCount(count,index)=sum(decodedPacketCheck);
+        decodedCheck(count,index)=decoded;
         if(decoded)
             rates(count,index)=packetCount/recCount;
             [~,BERS(count,index)]=biterr(decodedPackets,packets);
         end
     end
 end
-ratesC=rates(configs,:)
+overHeads=(rates(configs,:));
+for count=1:length(overHeads)
+overHeads(count)=(1/overHeads(count))-1;
+end
+overHeads
 recCountAC=recCountA(configs,:)
-decodedCountC=decodedCount(configs,:)
+decodedCheckC=decodedCheck(configs,:)
 BERSC=BERS(configs,:)
-minDegC=minDeg(configs,:)
-legendStrings=cell(size(rates,1),1);
-semilogy(SNRS,rates(1,:), '-*');
-hold on
-
-legendStrings{1}=['AWGN Mean threshold'];
-%intactCount
-semilogy(SNRS,rates(2,:), '-*');
-legendStrings{2}=['AWGN 0.5 threshold'];
-semilogy(SNRS,rates(3,:), '-*');
-legendStrings{3}=['AWGN Mean threshold on frames'];
-semilogy(SNRS,rates(4,:), '-*');
-legendStrings{4}=['AWGN + Turbulence Mean threshold'];
-
-
-semilogy(SNRS,rates(5,:), '-*');
-legendStrings{5}=['AWGN + Turbulence 0.5 threshold'];
-    
-semilogy(SNRS,rates(6,:), '-*');
-legendStrings{6}=['AWGN + Turbulence Mean threshold on frames'];
-
-grid
-ylabel('rates');
-xlabel('SNR(dB)');
-legend(legendStrings);
-hold off;
+% legendStrings=cell(size(rates,1),1);
+% semilogy(SNRS,rates(1,:), '-*');
+% hold on
+% 
+% legendStrings{1}=['AWGN Mean threshold'];
+% %intactCount
+% semilogy(SNRS,rates(2,:), '-*');
+% legendStrings{2}=['AWGN 0.5 threshold'];
+% semilogy(SNRS,rates(3,:), '-*');
+% legendStrings{3}=['AWGN Mean threshold on frames'];
+% semilogy(SNRS,rates(4,:), '-*');
+% legendStrings{4}=['AWGN + Turbulence Mean threshold'];
+% 
+% 
+% semilogy(SNRS,rates(5,:), '-*');
+% legendStrings{5}=['AWGN + Turbulence 0.5 threshold'];
+%     
+% semilogy(SNRS,rates(6,:), '-*');
+% legendStrings{6}=['AWGN + Turbulence Mean threshold on frames'];
+% 
+% grid
+% ylabel('rates');
+% xlabel('SNR(dB)');
+% legend(legendStrings);
+% hold off;

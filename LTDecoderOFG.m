@@ -1,15 +1,14 @@
-function [decodedPackets,decoded,G] = LTDecoderGE(newPackets,newPacketDetails,newPacketCount,K, origG, origDecoded)
+function [decodedPackets,decoded,G] = LTDecoderOFG(newPackets,newPacketDetails,newPacketCount,K, G, decodedPackets)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-    G=origG;
     indices=indexRecover(newPacketDetails,K,newPacketCount);
-    decodedPackets=origDecoded;
 
-    [G,decoded]=populateG(origG,origDecoded,indices,newPackets);
-    solvable=diag(G==K);
-
+    [G,decodedPackets]=populateG(G,decodedPackets,indices,newPackets);
+    solvable=sum(diag(G))==K;
+    decoded=false;
     if(solvable)
-        [G,decoded]=backSubstitution(G,decoded);
+        [G,decodedPackets]=backSubstitution(G,decodedPackets);
+        decoded=true;
     end
 end
 
