@@ -105,13 +105,12 @@ G=zeros(packetCount);
             payload=[packetLT degreeBin KBin seedBin];
             frame=crcGen1(payload.');  
             waveFormTX=OOK(frame,transmitFreq,samplingFreq);
-            if(count<4)
-                waveFormRX=2*waveFormTX.';
-            else
-                waveFormRX=2*(waveFormTX.').*loopTurbulence(1:length(waveFormTX));
-                loopTurbulence(1:length(waveFormTX))=[];
-            end
-             waveFormRXA=awgn(waveFormRX,SNRS(index)); 
+            waveFormRX=2*waveFormTX.';
+            waveFormRXA=awgn(waveFormRX,SNRS(index)); 
+            if(count>4)
+                waveFormRXA=waveFormRXA.*loopTurbulence(1:length(waveFormRXA));
+                loopTurbulence(1:length(waveFormRXA))=[];
+            end 
             [resBin,thresholds(count,index)]=clockRecoveryFrame(waveFormRXA,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
              %[ErrorCount(count,index),BERS(count,index),Errors(count,index,:)]=biterr(resBin,bitStream);
              %framesRX=reshape(resBin,frameSize,[]).';

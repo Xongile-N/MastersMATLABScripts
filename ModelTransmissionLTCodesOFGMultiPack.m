@@ -6,7 +6,7 @@ beamSize=300;% default=w_ST = 200;
 payloadSize=1000;
 packetCount=200;
 overheadThresh=40;
-packetsPerIteration=packetCount/5;
+packetsPerIteration=packetCount/10;
         rng('shuffle');
 %packetSize;
 %rng(packetCount);
@@ -51,7 +51,7 @@ bitCount=length(bitStream);
 waveFormTXTemp=OOK(bitStream,transmitFreq,samplingFreq);
 overThresh=false;
  turbulence=turbulenceModelTime(samplingFreq,length(waveFormTXTemp), upSampleFreq, false,overheadThresh,beamSize);
- SNRS=(5:9)*2;
+ SNRS=(3:7)*2;
 BERS=zeros(6,length(SNRS));
 Errors=zeros(2,length(SNRS),length(bitStream));
 thresholds=BERS;
@@ -106,13 +106,12 @@ G=zeros(packetCount);
                 frames(packCount,:)=crcGen1(payload.'); 
             end
             waveFormTX=OOK(reshape(frames.',[],1),transmitFreq,samplingFreq);
-            if(count<4)
-                waveFormRX=2*waveFormTX.';
-            else
-                waveFormRX=2*(waveFormTX.').*loopTurbulence(1:length(waveFormTX));
-                loopTurbulence(1:length(waveFormTX))=[];
+            waveFormRX=2*waveFormTX.';
+            waveFormRXA=awgn(waveFormRX,SNRS(index)); 
+            if(count>4)
+                waveFormRXA=waveFormRXA.*loopTurbulence(1:length(waveFormRXA));
+                loopTurbulence(1:length(waveFormRXA))=[];
             end
-             waveFormRXA=awgn(waveFormRX,SNRS(index)); 
             [resBin,thresholds(count,index)]=clockRecoveryFrame(waveFormRXA,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
              %[ErrorCount(count,index),BERS(count,index),Errors(count,index,:)]=biterr(resBin,bitStream);
             framesRX=reshape(resBin,frameSize,[]).';
