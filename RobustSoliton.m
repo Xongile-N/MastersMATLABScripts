@@ -23,7 +23,7 @@ Z=sum(p_d)+sum(r_d);
 distribution=(p_d+r_d)/Z;
 cumulative=cumsum(distribution);
 
-  plot(1:K,distribution);
+  %plot(1:K,distribution);
 
 end
 

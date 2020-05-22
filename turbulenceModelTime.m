@@ -8,10 +8,9 @@
 
 %% Simulate Wander
 function simI_corr=turbulenceModelTime(sampleRateOuter,samplesOuter, overSampleRate, toPlot, upFactor,w_ST)
-
+%disp('starting turbulence');
 sampleRate=300;
-ceil(samplesOuter*sampleRate/sampleRateOuter)
-samples=ceil(samplesOuter*sampleRate/sampleRateOuter)*upFactor
+samples=ceil(samplesOuter*sampleRate/sampleRateOuter)*upFactor;
 
 
 model = arima('Constant',0,'AR',{1.759,-0.76259},'MA',{-1.2889, 0.31655},'Variance',2150); % r_0=0.01m, C_n^2=4.1e-13, \sigma_I=0.55
@@ -57,13 +56,15 @@ r = 0; %detector position
 fudgeScale = 1;
 
 simI = I_0.*exp(-2 * ((r-simRho).^2)./((w_ST*fudgeScale).^2)); 
-upsampleFactor=overSampleRate/sampleRate
+upsampleFactor=overSampleRate/sampleRate;
 %upsampleFactor=ceil(upsampleFactor);
+downSampleFactor=overSampleRate/sampleRateOuter;
 
 simI_over=interp(simI,upsampleFactor);
-downSampleFactor=overSampleRate/sampleRateOuter
 simI_corr=decimate(simI_over,downSampleFactor);
 simI_corr=simI_corr(1:samplesOuter*upFactor);
+%disp('leaving turbulence');
+
 % if(toPlot)
 % %Plot original and interpolated
 %  subplot(2,1,1)

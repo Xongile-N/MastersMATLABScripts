@@ -4,8 +4,8 @@ delta=0.01;
 c=0.1;
 beamSize=300;% default=w_ST = 200; 
 payloadSize=1000;
-packetCount=20;
-overheadThresh=10;
+packetCount=1000;
+overheadThresh=1000;
 packetsPerIteration=packetCount/5;
         rng('shuffle');
 %packetSize;
@@ -48,9 +48,9 @@ frameSize=payloadSize+CRCLength+LTHeaderLength;
 frames=zeros(packetCount,frameSize);
 bitStream=reshape(frames.',[],1);
 bitCount=length(bitStream);
-waveFormTXTemp=OOK(bitStream,transmitFreq,samplingFreq);
+%waveFormTXTemp=OOK(bitStream,transmitFreq,samplingFreq);
 overThresh=false;
- turbulence=turbulenceModelTime(samplingFreq,length(waveFormTXTemp), upSampleFreq, false,overheadThresh,beamSize);
+ %turbulence=turbulenceModelTime(samplingFreq,length(waveFormTXTemp), upSampleFreq, false,overheadThresh,beamSize);
  SNRS=(2:8)*2;
 BERS=zeros(6,length(SNRS));
 Errors=zeros(2,length(SNRS),length(bitStream));
@@ -77,13 +77,12 @@ decodedCheck=recCountA;
 decodedableCount=recCountA;
 BERS=BERS+1;
 frames=zeros(packetsPerIteration,frameSize);
-
-configs=[3 6];% choose which configs to test.
+configs=[6];% choose which configs to test.
 for index0=1:length(configs)
     count=configs(index0)
     for index =1:length(SNRS)
         index
-        loopTurbulence=turbulence;
+        %loopTurbulence=turbulence;
         recCount=0;
         recIndex=1;
        decodedPackets=zeros(size(packets));
@@ -109,8 +108,8 @@ G=zeros(packetCount);
             waveFormRX=2*waveFormTX.';
             waveFormRXA=awgn(waveFormRX,SNRS(index)); 
             if(count>4)
+                loopTurbulence=turbulenceModelTime(samplingFreq,length(waveFormRXA), upSampleFreq, false,1,beamSize);
                 waveFormRXA=waveFormRXA.*loopTurbulence(1:length(waveFormRXA));
-                loopTurbulence(1:length(waveFormRXA))=[];
             end
             [resBin,thresholds(count,index)]=clockRecoveryFrame(waveFormRXA,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
              %[ErrorCount(count,index),BERS(count,index),Errors(count,index,:)]=biterr(resBin,bitStream);
