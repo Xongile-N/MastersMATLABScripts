@@ -7,7 +7,7 @@
 
 
 %% Simulate Wander
-function simI_corr=turbulenceModelTime(sampleRateOuter,samplesOuter, overSampleRate, toPlot, upFactor)
+function simI_corr=turbulenceModelTime(sampleRateOuter,samplesOuter, overSampleRate, toPlot, upFactor,w_ST)
 
 sampleRate=300;
 ceil(samplesOuter*sampleRate/sampleRateOuter)
@@ -52,7 +52,7 @@ simX = simulate(model,samples);
 % The spatial simulation is great, but needs to be mapped into intensities
 
 I_0 = 1; %initial intensity
-w_ST = 200; %beam size, 103 (115um) experiement, make bigger for less fading
+%w_ST = 200; %beam size, 103 (115um) experiement, make bigger for less fading
 r = 0; %detector position
 fudgeScale = 1;
 

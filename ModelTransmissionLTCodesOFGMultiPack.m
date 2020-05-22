@@ -1,23 +1,25 @@
 clear all;
 clc;
-
+delta=0.01;
+c=0.1;
+beamSize=300;% default=w_ST = 200; 
 payloadSize=1000;
-packetCount=20;
-overheadThresh=20;
-packetsPerIteration=packetCount/20;
+packetCount=200;
+overheadThresh=40;
+packetsPerIteration=packetCount/5;
         rng('shuffle');
 %packetSize;
 %rng(packetCount);
 bitCount=payloadSize*packetCount;
 transmitFreq=1e5;
-samplesPerClock=3;
+samplesPerClock=2;
 samplingFreq=transmitFreq*4*samplesPerClock;
 upSampleFreq=samplingFreq*3;
 LFSRSeed=[1 0 1 0 1 1 1 0 1 0 1 0 1 0 0];
 LFSRPoly=[15 14 0];
 payloadStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
 packets=reshape(payloadStream,payloadSize,[]).';
-[dist,~]=RobustSoliton(packetCount,0.01,0.1);
+[dist,~]=RobustSoliton(packetCount,delta,c);
 
 % indices
 % [LTPacket,indices,seedUsed]=LTCoder(packets,dist);
@@ -48,8 +50,8 @@ bitStream=reshape(frames.',[],1);
 bitCount=length(bitStream);
 waveFormTXTemp=OOK(bitStream,transmitFreq,samplingFreq);
 overThresh=false;
- turbulence=turbulenceModelTime(samplingFreq,length(waveFormTXTemp), upSampleFreq, false,overheadThresh);
- SNRS=(2:8)*2;
+ turbulence=turbulenceModelTime(samplingFreq,length(waveFormTXTemp), upSampleFreq, false,overheadThresh,beamSize);
+ SNRS=(5:9)*2;
 BERS=zeros(6,length(SNRS));
 Errors=zeros(2,length(SNRS),length(bitStream));
 thresholds=BERS;
@@ -68,15 +70,15 @@ crcDetect1=comm.CRCDetector(...
     'InitialConditions', 1, ...
     'DirectMethod', true, ...
     'FinalXOR', 1);
-rates=BERS;
+rates=BERS+1/overheadThresh;
 recCountA=BERS;
 minDeg=BERS;
-decodedCount=recCountA;
+decodedCheck=recCountA;
 decodedableCount=recCountA;
 BERS=BERS+1;
-configs=[6];% choose which configs to test.
 frames=zeros(packetsPerIteration,frameSize);
 
+configs=[3 6];% choose which configs to test.
 for index0=1:length(configs)
     count=configs(index0)
     for index =1:length(SNRS)
@@ -84,14 +86,12 @@ for index0=1:length(configs)
         loopTurbulence=turbulence;
         recCount=0;
         recIndex=1;
-        receivedPackets=zeros(size(packets,1)*overheadThresh,size(packets,2));
-        receivedPacketDetails=zeros(size(receivedPackets,1),2)-1;%stores the current degree and the seed used. In that order
-        decodedPackets=zeros(size(packets));
+       decodedPackets=zeros(size(packets));
         decodedPacketCheck=zeros(packetCount,1);
         decoded=false;    
         overThresh=false;
 rng('shuffle')
-
+G=zeros(packetCount);
         while (~decoded&&~overThresh)
             for packCount=1:packetsPerIteration
                 recCount=recCount+1;
@@ -115,13 +115,16 @@ rng('shuffle')
              waveFormRXA=awgn(waveFormRX,SNRS(index)); 
             [resBin,thresholds(count,index)]=clockRecoveryFrame(waveFormRXA,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
              %[ErrorCount(count,index),BERS(count,index),Errors(count,index,:)]=biterr(resBin,bitStream);
-             framesRX=reshape(resBin,frameSize,[]).';
-             frameRX=resBin;
-             intact=false;
+            framesRX=reshape(resBin,frameSize,[]).';
+            intact=false;
+            newPackets=zeros(packetsPerIteration,payloadSize);
+            newPacketDetails=zeros(packetsPerIteration,2);
+            loopRecCount=0;
             for packCount=1:packetsPerIteration
-                 [payloadRX,CRCDetectFrame]=crcDetect1(framesRX(packCount,:).');
-                 if(~CRCDetectFrame)
-                    receivedPackets(recIndex,:)=payloadRX(1:payloadSize).';
+                [payloadRX,CRCDetectFrame]=crcDetect1(framesRX(packCount,:).');
+                if(~CRCDetectFrame)
+                    loopRecCount=loopRecCount+1;
+                    newPackets(loopRecCount,:)=payloadRX(1:payloadSize).';
                     degRBits=payloadRX(degBitsIndex:degBitsIndex+degreeBits-1).';
                     KRBits=payloadRX(KBitsIndex:KBitsIndex+KBits-1).';
                     seedRBits=payloadRX(seedBitsIndex:seedBitsIndex+seedBits-1).';
@@ -129,23 +132,17 @@ rng('shuffle')
                     KDe=bi2de(KRBits,'left-msb');
                     seedDe=bi2de(seedRBits,'left-msb');
                     recCountA(count,index)=recCountA(count,index)+1;
-                    receivedPacketDetails(recIndex,:)=[degreeDe,seedDe];
-                    recIndex=recIndex+1;
+                    newPacketDetails(loopRecCount,:)=[degreeDe,seedDe];
                     intact=true;
-                    if(degreeDe==1)
-                        decodedableCount(count,index)=1+decodedableCount(count,index);
-                    end
-                 end
+                    recIndex=recIndex+1;
+                end
             end
             if(intact)
-                 [decodedPackets,decodedPacketCheck,decoded]=LTDecoderBP(receivedPackets,receivedPacketDetails,recIndex-1,KDe,decodedPackets,decodedPacketCheck);
+                [decodedPackets,decoded,G]=LTDecoderOFG(newPackets(1:loopRecCount,:),newPacketDetails(1:loopRecCount,:),loopRecCount,KDe,G,decodedPackets);
             end
             overThresh=recCount>=packetCount*overheadThresh;
         end
-        if(recCountA(count,index)>0)
-        minDeg(count,index)=min(receivedPacketDetails(1:recCountA(count,index),1));
-        end
-        decodedCount(count,index)=sum(decodedPacketCheck);
+        decodedCheck(count,index)=decoded;
         if(decoded)
             rates(count,index)=packetCount/recCount;
             [~,BERS(count,index)]=biterr(decodedPackets,packets);
@@ -158,9 +155,8 @@ overHeads(count)=(1/overHeads(count))-1;
 end
 overHeads
 recCountAC=recCountA(configs,:)
-decodedCountC=decodedCount(configs,:)
+decodedCheckC=decodedCheck(configs,:)
 BERSC=BERS(configs,:)
-minDegC=minDeg(configs,:)
 legendStrings=cell(size(rates,1),1);
 semilogy(SNRS,rates(1,:), '-*');
 hold on

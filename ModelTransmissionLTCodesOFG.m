@@ -2,8 +2,8 @@ clear all;
 clc;
 
 payloadSize=1000;
-packetCount=10;
-overheadThresh=100;
+packetCount=100;
+overheadThresh=10;
 packetsPerIteration=10;
         rng('shuffle');
 %packetSize;
@@ -76,7 +76,6 @@ decodedableCount=recCountA;
 BERS=BERS+1;
 
 configs=[3 6];% choose which configs to test.
-packets(1,1:15)
 for index0=1:length(configs)
     count=configs(index0)
     for index =1:length(SNRS)
@@ -150,28 +149,28 @@ overHeads
 recCountAC=recCountA(configs,:)
 decodedCheckC=decodedCheck(configs,:)
 BERSC=BERS(configs,:)
-% legendStrings=cell(size(rates,1),1);
-% semilogy(SNRS,rates(1,:), '-*');
-% hold on
-% 
-% legendStrings{1}=['AWGN Mean threshold'];
-% %intactCount
-% semilogy(SNRS,rates(2,:), '-*');
-% legendStrings{2}=['AWGN 0.5 threshold'];
-% semilogy(SNRS,rates(3,:), '-*');
-% legendStrings{3}=['AWGN Mean threshold on frames'];
-% semilogy(SNRS,rates(4,:), '-*');
-% legendStrings{4}=['AWGN + Turbulence Mean threshold'];
-% 
-% 
-% semilogy(SNRS,rates(5,:), '-*');
-% legendStrings{5}=['AWGN + Turbulence 0.5 threshold'];
-%     
-% semilogy(SNRS,rates(6,:), '-*');
-% legendStrings{6}=['AWGN + Turbulence Mean threshold on frames'];
-% 
-% grid
-% ylabel('rates');
-% xlabel('SNR(dB)');
-% legend(legendStrings);
-% hold off;
+legendStrings=cell(size(rates,1),1);
+semilogy(SNRS,rates(1,:), '-*');
+hold on
+
+legendStrings{1}=['AWGN Mean threshold'];
+%intactCount
+semilogy(SNRS,rates(2,:), '-*');
+legendStrings{2}=['AWGN 0.5 threshold'];
+semilogy(SNRS,rates(3,:), '-*');
+legendStrings{3}=['AWGN Mean threshold on frames'];
+semilogy(SNRS,rates(4,:), '-*');
+legendStrings{4}=['AWGN + Turbulence Mean threshold'];
+
+
+semilogy(SNRS,rates(5,:), '-*');
+legendStrings{5}=['AWGN + Turbulence 0.5 threshold'];
+    
+semilogy(SNRS,rates(6,:), '-*');
+legendStrings{6}=['AWGN + Turbulence Mean threshold on frames'];
+
+grid
+ylabel('rates');
+xlabel('SNR(dB)');
+legend(legendStrings);
+hold off;

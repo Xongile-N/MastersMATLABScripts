@@ -4,6 +4,8 @@ function [decodedPackets,decoded,G] = LTDecoderOFG(newPackets,newPacketDetails,n
     indices=indexRecover(newPacketDetails,K,newPacketCount);
 
     [G,decodedPackets]=populateG(G,decodedPackets,indices,newPackets);
+    
+    sum(diag(G))
     solvable=sum(diag(G))==K;
     decoded=false;
     if(solvable)

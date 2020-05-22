@@ -1,4 +1,4 @@
-clear all;
+giclear all;
 clc;
 
 payloadSize=1000;
