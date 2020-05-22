@@ -1,6 +1,8 @@
 clear all;
 clc;
-
+delta=0.01;
+c=0.1;
+beamSize=300;% default=w_ST = 200; 
 payloadSize=1000;
 packetCount=20;
 overheadThresh=20;
@@ -17,7 +19,7 @@ LFSRSeed=[1 0 1 0 1 1 1 0 1 0 1 0 1 0 0];
 LFSRPoly=[15 14 0];
 payloadStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
 packets=reshape(payloadStream,payloadSize,[]).';
-[dist,~]=RobustSoliton(packetCount,0.01,0.1);
+[dist,~]=RobustSoliton(packetCount,delta,c);
 
 % indices
 % [LTPacket,indices,seedUsed]=LTCoder(packets,dist);
@@ -48,7 +50,7 @@ bitStream=reshape(frames.',[],1);
 bitCount=length(bitStream);
 waveFormTXTemp=OOK(bitStream,transmitFreq,samplingFreq);
 overThresh=false;
- turbulence=turbulenceModelTime(samplingFreq,length(waveFormTXTemp), upSampleFreq, false,overheadThresh);
+ turbulence=turbulenceModelTime(samplingFreq,length(waveFormTXTemp), upSampleFreq, false,overheadThresh,beamSize);
  SNRS=(2:8)*2;
 BERS=zeros(6,length(SNRS));
 Errors=zeros(2,length(SNRS),length(bitStream));
