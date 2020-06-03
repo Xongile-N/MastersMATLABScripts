@@ -1,4 +1,4 @@
-clear all;
+%clear all;
 clc;
 %delta=0.5;
 %c=0.1;
@@ -24,7 +24,7 @@ turbulence=turbulenceModelTime(samplingFreq,length(waveFormTX), upSampleFreq, fa
 types=[ 0 0 1 0 0 1;...
     0 1 0 0 1 0];
 configs=[6];% choose which configs to test.
-SNRS=[12]
+SNRS=[10]
 for index0=1:length(configs)
     count=configs(index0)
     for index =1:length(SNRS)
@@ -51,14 +51,27 @@ for index0=1:length(configs)
             gapLength=(posSort(posI+1)-posSort(posI));
             gaps(gapLength)=gaps(gapLength)+1;
         end
-        sum(gaps)
+        P01=sum(gaps)/sum(errSeq);
+        gapCount=sum(gaps);
+        errorCount=sum(errSeq);
         gaps=gaps/sum(gaps);
         [count index sum(errSeq) diff diffPos diffPos2 ]
-        sum(errSeq)/bitCount
+        BER=errorCount/bitCount
         sum(errSeq(diffPos:diffPos2))
+        EFR=zeros(diff,1);
+        gapsCumul=cumsum(gaps);
+        EFR(1)=P01;
+        for i=2:length(EFR)
+            EFR(i)=(1-gapsCumul(i-1))*P01;
+        end
+        
     end
-    %hold on
-    plot(1:diff,gaps(1:diff))
+    plotLimit=100;
+        plot(gapsCumul(1:plotLimit))
+
+    hold on
+    %plot(1:diff,gaps(1:diff))
+    plot(EFR(1:plotLimit))
     %plot(cumsum(gaps))
-    %hold off
+    hold off
 end
