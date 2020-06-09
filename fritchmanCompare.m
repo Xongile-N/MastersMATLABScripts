@@ -4,7 +4,7 @@ clc;
 %c=0.1;
 beamSize=200;% default=w_ST = 200; 
 payloadSize=1000;
-packetCount=100;
+packetCount=10000;
 frameSize=1000;
 overheadThresh=1;
         rng('shuffle');
@@ -65,7 +65,7 @@ genErrSeq=hmmgenerate(bitCount,  estTR,estE,'Symbols',symbols);
              plotLimit=1000;
 legendStrings=cell(2,1);
 legendStrings{1}=['Turbulence Transmission model'];
-legendStrings{2}=['Three state Fritchman model'];
+legendStrings{2}=[strcat(num2str(size(trans,1)),' state Fritchman model')];
 clf
 nexttile;
 
