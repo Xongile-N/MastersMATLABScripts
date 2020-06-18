@@ -4,7 +4,7 @@ clc;
 %c=0.1;
 beamSize=200;% default=w_ST = 200; 
 payloadSize=1000;
-packetCount=10000;
+packetCount=10;
 frameSize=1000;
 overheadThresh=1;
         rng('shuffle');
@@ -20,7 +20,6 @@ LFSRPoly=[15 14 0];
 bitStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
 waveFormTX=OOK(bitStream,transmitFreq,samplingFreq);
 turbulence=turbulenceModelTime(samplingFreq,length(waveFormTX), upSampleFreq, false,overheadThresh,beamSize);
-
 types=[ 0 0 1 0 0 1;...
     0 1 0 0 1 0];
 configs=[6];% choose which configs to test.
