@@ -1,10 +1,10 @@
-function sequence = LFSRGaloisHeader(seed,poly,totLength,header,frameLength)
+function sequence = LFSRGaloisHeader(seed,poly,totLength,header,payloadLength)
 sequence=zeros(totLength,1);
 lfsr=seed;
 headerLength=length(header)
 index=1
 while (index<=totLength)
-    isHeader=mod(index-1,frameLength+headerLength)==0;
+    isHeader=mod(index-1,payloadLength+headerLength)==0;
     if(isHeader)
         for hIndex=1:headerLength
             sequence(index)=header(hIndex);
@@ -13,6 +13,7 @@ while (index<=totLength)
         index=index-1;
     else
         sequence(index)=bitand(lfsr,1,'uint8');
+         sequence(index);
         lfsr=bitshift(lfsr,-1,'uint8');
         if(sequence(index)==1)
             lfsr=bitxor(lfsr,poly,'uint8');

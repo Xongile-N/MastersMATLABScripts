@@ -6,10 +6,12 @@ packetCount=length(trueSeqHeaders);
 packets=zeros(length(headersData),2);
 
 for count =1:length(headersData)-1
-    trueSeqIndex=mod(count-1,packetCount)+1;
+    trueSeqIndex=mod(count-1,packetCount)+1;%checks if packets have cycled to beginning
         packets(count,1)=trueSeqIndex;
     packets(count,2)=count;
-   BERS(count)=biterr(trueSeq(trueSeqHeaders(trueSeqIndex):trueSeqHeaders(trueSeqIndex)+frameLength-1),data(headersData(count):headersData(count)+frameLength-1))/frameLength;
+    trueSeqLoop=trueSeq(trueSeqHeaders(trueSeqIndex):trueSeqHeaders(trueSeqIndex)+frameLength-1);
+    dataLoop=data(headersData(count):headersData(count)+frameLength-1).';
+   BERS(count)=biterr(trueSeqLoop,dataLoop)/frameLength;
     avgBER=mean(BERS);
 end
 
