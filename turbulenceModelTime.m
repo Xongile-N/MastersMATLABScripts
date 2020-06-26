@@ -65,21 +65,14 @@ simI_corr=decimate(simI_over,downSampleFactor);
 simI_corr=simI_corr(1:samplesOuter*upFactor);
 %disp('leaving turbulence');
 
-% if(toPlot)
-% %Plot original and interpolated
-%  subplot(2,1,1)
-%  stem(simI)
-%  title('Simulated Wander Fading')
-%  subplot(2,1,2)
-%  stem(simI_corr)
-%  title('Simulated Wander Fading Upsampled')
-% end
-end
-%% Plot intensities
 % figure;
 % subplot(2,1,1)
-% plot(time,simI)
+% plot(simI)
 % title('Simulated Wander Fading')
 % subplot(2,1,2)
 % histogram(simI,50)
 % title('Simulated Wander Histogram (sort of PDF)')
+
+end
+% Plot intensities
+

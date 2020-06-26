@@ -1,10 +1,10 @@
-%clear all;
+clear all;
 clc;
 %delta=0.5;
 %c=0.1;
 beamSize=200;% default=w_ST = 200; 
 payloadSize=1000;
-packetCount=1000;
+packetCount=10;
 frameSize=1000;
 overheadThresh=1;
         rng('shuffle');
@@ -22,7 +22,7 @@ waveFormTX=OOK(bitStream,transmitFreq,samplingFreq);
 turbulence=turbulenceModelTime(samplingFreq,length(waveFormTX), upSampleFreq, false,overheadThresh,beamSize);
 types=[ 0 0 1 0 0 1;...
     0 1 0 0 1 0];
-configs=[6];% choose which configs to test.
+configs=[5];% choose which configs to test.
 SNRS=[3]
 for index0=1:length(configs)
     count=configs(index0)
@@ -32,9 +32,10 @@ for index0=1:length(configs)
         waveFormRXA=waveFormRXA.*turbulence(1:length(waveFormRXA));
         [resBin,~]=clockRecoveryFrame(waveFormRXA,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
         errSeq=bitxor(resBin,bitStream);
-        [gapsT,gapsTCumul,P01,diffT,unscaledT]=getGapDistribution(errSeq);
-        errorCount=sum(errSeq);
+                errorCount=sum(errSeq);
         BER=errorCount/bitCount
+        [gapsT,gapsTCumul,P01,diffT,unscaledT]=getGapDistribution(errSeq);
+
          EFRT=zeros(diffT,1);
          EFRT(1)=P01;
          for i=2:length(EFRT)

@@ -4,7 +4,8 @@ L=length(waveForm);
 timeBase = (0:L-1)*T;  
 baseSampleFreq=2*baseFreq;
 %baseSampleFreq=baseFreq;
-
+useBaseThresh
+useFrames
 transition=false;
 high=false;
 basePeriod=1/baseSampleFreq;
