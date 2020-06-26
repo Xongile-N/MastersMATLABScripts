@@ -1,10 +1,10 @@
-function [BERS,avgBER,skipped] = BER_packets_NR(headersData,data,trueSeqHeaders,trueSeq, frameLength)
+function [BERS,avgBER,skipped,errSeq] = BER_packets_NR(headersData,data,trueSeqHeaders,trueSeq, frameLength)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 BERS=zeros(length(headersData),1);
 packetCount=length(trueSeqHeaders);
 packets=zeros(length(headersData),2);
-
+errSeq=zeros(length(headersData)*frameLength,1);
 for count =1:length(headersData)-1
     trueSeqIndex=mod(count-1,packetCount)+1;%checks if packets have cycled to beginning
         packets(count,1)=trueSeqIndex;
@@ -12,7 +12,8 @@ for count =1:length(headersData)-1
     trueSeqLoop=trueSeq(trueSeqHeaders(trueSeqIndex):trueSeqHeaders(trueSeqIndex)+frameLength-1);
     dataLoop=data(headersData(count):headersData(count)+frameLength-1).';
    BERS(count)=biterr(trueSeqLoop,dataLoop)/frameLength;
-    avgBER=mean(BERS);
+   errSeq((count-1)*frameLength+1:count*frameLength)=bitxor(dataLoop,trueSeqLoop);
+   avgBER=mean(BERS);
 end
 
 prevPacket=packets(1,1)-1;

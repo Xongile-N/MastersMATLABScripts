@@ -1,5 +1,5 @@
 values=real(out.Signal.data).';
-frequency=2500;
+frequency=5000;
 masterClock=100000000;
 decimFactor=10;
 sampleRate=masterClock/decimFactor;
@@ -42,7 +42,8 @@ headers=headerIndices(gold,resBin,  goldAutoCorr-1,goldAutoCorr);
 headersCleaned=cleanHeaders(headers,goldLength);
 headersCleaned=headersCleaned(:,1);
 (headersCleaned-headersCleaned(1))/frameLength;
-trueHeaders=headerIndices(gold,packetStream,  goldAutoCorr-1,goldAutoCorr);
-trueHeadersCleaned=cleanHeaders(trueHeaders,goldLength)
+trueHeaders=headerIndices(gold,packetStream,  goldAutoCorr-1,goldAutoCorr);%get header positions of
+trueHeadersCleaned=cleanHeaders(trueHeaders,goldLength);
 trueHeadersCleaned=trueHeadersCleaned(:,1);
-[BERS,avgBER,skipped]=BER_packets_NR(headersCleaned,resBin,trueHeadersCleaned,packetStream,frameLength);
+[BERS,avgBER,skipped,errSeq]=BER_packets_NR(headersCleaned,resBin,trueHeadersCleaned,packetStream,frameLength);
+[gaps,EFR,gapsCumul,unscaledGaps]=runLengthDisitrbution(errSeq);

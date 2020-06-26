@@ -1,4 +1,5 @@
 function indicesCorr = headerIndices(header,data,thresh,perfThresh)
+%function to retrieve the indices of headers in a binary stream
 headerBi=header*2-1;
 dataBi=data*2-1;
 dataLength=length(data);

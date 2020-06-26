@@ -71,7 +71,7 @@ for index0=1:length(configs)
 
     hold on
     %plot(1:diff,gaps(1:diff))
-    plot(EFR(1:plotLimit))
+    bar(EFR(1:plotLimit),'hist')
     %plot(cumsum(gaps))
     hold off
 end

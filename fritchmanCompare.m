@@ -4,7 +4,7 @@ clc;
 %c=0.1;
 beamSize=200;% default=w_ST = 200; 
 payloadSize=1000;
-packetCount=10;
+packetCount=1000;
 frameSize=1000;
 overheadThresh=1;
         rng('shuffle');
@@ -32,7 +32,7 @@ for index0=1:length(configs)
         waveFormRXA=waveFormRXA.*turbulence(1:length(waveFormRXA));
         [resBin,~]=clockRecoveryFrame(waveFormRXA,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
         errSeq=bitxor(resBin,bitStream);
-        [gapsT,gapsTCumul,P01,diffT]=getGapDistribution(errSeq);
+        [gapsT,gapsTCumul,P01,diffT,unscaledT]=getGapDistribution(errSeq);
         errorCount=sum(errSeq);
         BER=errorCount/bitCount
          EFRT=zeros(diffT,1);
@@ -53,25 +53,30 @@ p=[0.3 0.3 0.4]
 trans_hat = [0 p; zeros(size(trans,1),1) trans]
 
 emis_hat = [zeros(1,size(emis,2)); emis]
-[estTR,estE] = hmmtrain(errSeq.',trans_hat,emis_hat,'Symbols',symbols,'Verbose',true)
-genErrSeq=hmmgenerate(bitCount,  estTR,estE,'Symbols',symbols);
-        [gapsF,gapsFCumul,P01F,diffF]=getGapDistribution(genErrSeq);
+maxIter=40;
+[estTR,estE] = hmmtrain(errSeq.',trans_hat,emis_hat,'Symbols',symbols,'Verbose',true,'MaxIterations',maxIter)
+genErrSeq=hmmgenerate(bitCount,  estTR,estE,'Symbols',symbols).';
+        [gapsF,gapsFCumul,P01F,diffF,unscaledF]=getGapDistribution(genErrSeq);
          EFRF=zeros(diffF,1);
          EFRF(1)=P01F;
          for i=2:length(EFRF)
              EFRF(i)=(1-gapsFCumul(i-1))*P01F;
          end
-             plotLimit=1000;
+             barLimit=100;
+             if(barLimit>length(gapsT))
+                 barLimit=length(gapsT)
+             end
 legendStrings=cell(2,1);
 legendStrings{1}=['Turbulence Transmission model'];
 legendStrings{2}=[strcat(num2str(size(trans,1)),' state Fritchman model')];
 clf
 nexttile;
 
-    plot(gapsTCumul)
+    bC1=bar(gapsTCumul );
+  %  bC1.FaceAlpha = 0.2;
     hold on
-        plot(gapsFCumul)
-
+    bC2=bar(gapsFCumul );
+    bC2.FaceAlpha = 0.4;
     grid
     title('Cumulative distribution of gap lengths')
     ylabel('Cumulative Distribution');
@@ -79,23 +84,37 @@ nexttile;
     legend(legendStrings);
     hold off
 nexttile;
-    plot(gapsT(1:plotLimit))
+    bP1=bar(gapsT(1:barLimit) );
+  %  bP1.FaceAlpha = 0.2;
     hold on
-        plot(gapsF(1:plotLimit))
-
+    bP2=bar(gapsF(1:barLimit) );    
+    bP2.FaceAlpha = 0.4;
     grid
- title('PDF of gap lengths')
+    title('PDF of gap lengths')
     ylabel('Gaps PDF');
     xlabel('Gaps');
     legend(legendStrings);
     hold off
 nexttile;
-    plot(EFRT)
+    bPU1=bar(unscaledT(1:barLimit) );
+   % bPU1.FaceAlpha = 0.2;
     hold on
-    plot(EFRF)
-
+    bPU2=bar(unscaledF(1:barLimit) );
+    bPU2.FaceAlpha = 0.4;
     grid
- title('Distribution of error free length probabilities')
+    title('Distribution of gap lengths unscaled')
+    ylabel('Gaps Count');
+    xlabel('Gap lengths');
+    legend(legendStrings);
+    hold off
+nexttile;
+    bE1=bar(EFRT );
+    %bE1.FaceAlpha = 0.2;
+    hold on
+    bE2=bar(EFRF );
+    bE2.FaceAlpha = 0.4;
+    grid
+    title('Distribution of error free length probabilities')
     ylabel('Error free run distribution');
     xlabel('EFR length');
     legend(legendStrings);
