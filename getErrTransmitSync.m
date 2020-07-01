@@ -48,5 +48,6 @@ resBin=clockRecoveryFrame(valuesSim,frequency,sampleRate,usePerfSquare,useFrames
 trueHeaders=headerIndices(gold,packetStream,  goldAutoCorr-1,goldAutoCorr);%get header positions of
 trueHeadersCleaned=cleanHeaders(trueHeaders,goldLength);
 trueHeadersCleaned=trueHeadersCleaned(:,1);
-[BERS,avgBER,errSeq]=BER_packets_HRSync(headersCleaned,resBin,trueHeadersCleaned,packetStream,frameLength);
+headersCleaned=[1;2;3;4];
+[BERS,avgBER,errSeq]=BER_packets_HRSync(headersCleaned,resBin,packetStream,frameLength);
 [gaps,EFR,gapsCumul,unscaledGaps]=runLengthDisitrbution(errSeq);
