@@ -78,7 +78,7 @@ elseif(useFrames)
     frames=reshape(waveForm,floor(sampleCount*2*frameSize),[]).';
             thresholds=zeros(size(frames,1),1);
 
-            for fIndex=1:size(frames,1)
+    for fIndex=1:size(frames,1)
         frame=frames(fIndex,:);
         threshold=mean(frame);
         thresholds(fIndex)=threshold;

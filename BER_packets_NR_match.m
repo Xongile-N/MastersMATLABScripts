@@ -10,7 +10,7 @@ for count =1:length(headersData)-1
     trueSeqIndex=mod(packetNumbers(count)-1,packetCount)+1;
    BERS(count)=biterr(trueSeq(trueSeqHeaders(trueSeqIndex):trueSeqHeaders(trueSeqIndex)+frameLength-1),data(headersData(count):headersData(count)+frameLength-1))/frameLength;
 
-    end
+    
 end
 avgBER=mean(BERS);
 end

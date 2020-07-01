@@ -12,7 +12,7 @@ valuesSim=valuesSim(twoSec:end);
 %valuesSim(pos)=upper;
 
 clc
-train=true;
+train=false;
 frameCount=100-train;%
 payloadSize=1000;
 gold=[1,1,0,1,0,1,0,0,1,1,1,0,0,0,1,1,0,1,0,1,0,1,1,1,0,0,1,0,1,0,0];
@@ -21,11 +21,11 @@ goldAutoCorr=31;
 goldLength=length(gold);
 %bitCount=frameCount*payloadSize;
 
-frameLength=payloadSize+goldLength;
-bitCount=frameCount*frameLength;
+frameLength=payloadSize;
+bitCount=frameCount*payloadSize+goldLength;
 LFSRSeed=100;%[0 1 1 0 0 1 0 0 ];
 LFSRPoly=184;%[1 0 1 1 1 0 0 0 ];
-packetStream=LFSRGaloisHeader(LFSRSeed,LFSRPoly,bitCount,gold,payloadSize);
+packetStream=LFSRGaloisSyncHeader(LFSRSeed,LFSRPoly,bitCount,gold,payloadSize);
 % LFSRSeed=[1 0 1 0 1 1 1 0 1 0 1 0 1 0 0];
 % LFSRPoly=[15 14 0];
 % payloadStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
@@ -37,13 +37,16 @@ packetStream=LFSRGaloisHeader(LFSRSeed,LFSRPoly,bitCount,gold,payloadSize);
 % packetsHeader(1,:);
 % tempTranspose=packetsHeader.';
 %packetStream=tempTranspose(1:end);
-resBin=clockRecoveryFrame(valuesSim,frequency,sampleRate,false,false,frameLength,false).';
-headers=headerIndices(gold,resBin,  goldAutoCorr-1,goldAutoCorr);
-headersCleaned=cleanHeaders(headers,goldLength);
-headersCleaned=headersCleaned(:,1);
-(headersCleaned-headersCleaned(1))/frameLength;
+useFrames=false;
+useBaseThresh=false;
+usePerfSquare=false;
+resBin=clockRecoveryFrame(valuesSim,frequency,sampleRate,usePerfSquare,useFrames,frameLength,useBaseThresh).';
+% headers=headerIndices(gold,resBin,  goldAutoCorr-3,goldAutoCorr);
+% headersCleaned=cleanHeaders(headers,goldLength);
+% headersCleaned=headersCleaned(:,1);
+% (headersCleaned-headersCleaned(1))/frameLength;
 trueHeaders=headerIndices(gold,packetStream,  goldAutoCorr-1,goldAutoCorr);%get header positions of
 trueHeadersCleaned=cleanHeaders(trueHeaders,goldLength);
 trueHeadersCleaned=trueHeadersCleaned(:,1);
-[BERS,avgBER,skipped,errSeq]=BER_packets_NR(headersCleaned,resBin,trueHeadersCleaned,packetStream,frameLength);
+[BERS,avgBER,errSeq]=BER_packets_HRSync(headersCleaned,resBin,trueHeadersCleaned,packetStream,frameLength);
 [gaps,EFR,gapsCumul,unscaledGaps]=runLengthDisitrbution(errSeq);
