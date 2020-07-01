@@ -49,5 +49,5 @@ trueHeaders=headerIndices(gold,packetStream,  goldAutoCorr-1,goldAutoCorr);%get 
 trueHeadersCleaned=cleanHeaders(trueHeaders,goldLength);
 trueHeadersCleaned=trueHeadersCleaned(:,1);
 headersCleaned=[1;2;3;4];
-[BERS,avgBER,errSeq]=BER_packets_HRSync(headersCleaned,resBin,packetStream,frameLength);
+[BERS,avgBER,errSeq]=BER_packets_HRSync(headersCleaned,resBin.',packetStream);
 [gaps,EFR,gapsCumul,unscaledGaps]=runLengthDisitrbution(errSeq);
