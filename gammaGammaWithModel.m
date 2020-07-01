@@ -2,7 +2,7 @@ clear all;
 clc;
 %delta=0.5;
 %c=0.1;
-beamSize=200;% default=w_ST = 200; 
+beamSize=100;% default=w_ST = 200; 
 payloadSize=1000;
 packetCount=100;
 frameSize=1000;
@@ -16,24 +16,34 @@ upSampleFreq=samplingFreq*3;
 LFSRSeed=[1 0 1 0 1 1 1 0 1 0 1 0 1 0 0];
 LFSRPoly=[15 14 0];
  SNRS=(2:8)*2;
+regime=2%1=weak, 2=moderate, 3=strong
+alphaVec=[11.6,4,4.2];
+betaVec=[10.1,1.9,1.4];
 
+thresh=0.5;
+errVal=0.1;
+resolution=0.1;
 bitStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
 waveFormTX=OOK(bitStream,transmitFreq,samplingFreq);
-turbulence=turbulenceModelTime(samplingFreq,length(waveFormTX), upSampleFreq, false,overheadThresh,beamSize);
+turbulenceM=turbulenceModelTime(samplingFreq,length(waveFormTX), upSampleFreq, false,overheadThresh,beamSize);
+turbulenceG=gammaTurb1(length(waveFormTX),alphaVec(regime),betaVec(regime),resolution);
+
 types=[ 0 0 1 0 0 1;...
     0 1 0 0 1 0];
-configs=[5];% choose which configs to test.
+configs=[6];% choose which configs to test.
 SNRS=[3]
 for index0=1:length(configs)
     count=configs(index0)
     for index =1:length(SNRS)
         waveFormRX=2*waveFormTX.';
         waveFormRXA=awgn(waveFormRX,SNRS(index)); 
-        waveFormRXA=waveFormRXA.*turbulence(1:length(waveFormRXA));
-        [resBin,~]=clockRecoveryFrame(waveFormRXA,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
+        waveFormRXAM=waveFormRXA.*turbulenceM(1:length(waveFormRXA));
+
+        [resBin,~]=clockRecoveryFrame(waveFormRXAM,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
         errSeq=bitxor(resBin,bitStream);
                 errorCount=sum(errSeq);
-        BER=errorCount/bitCount
+        BERG=errorCount/bitCount
+
         [gapsT,gapsTCumul,P01,diffT,unscaledT]=getGapDistribution(errSeq);
 
          EFRT=zeros(diffT,1);
@@ -41,42 +51,39 @@ for index0=1:length(configs)
          for i=2:length(EFRT)
              EFRT(i)=(1-gapsTCumul(i-1))*P01;
          end
-         
+        waveFormRXAG=waveFormRXA.*turbulenceG(1:length(waveFormRXA));
+        [resBin,~]=clockRecoveryFrame(waveFormRXAG,transmitFreq,samplingFreq,true, types(1,count), frameSize, types(2,count));
+        errSeq=bitxor(resBin,bitStream);
+                errorCount=sum(errSeq);
+        BERM=errorCount/bitCount
+
+        [gapsTG,gapsTGCumul,P01G,diffTG,unscaledTG]=getGapDistribution(errSeq);
+
+         EFRTG=zeros(diffTG,1);
+         EFRTG(1)=P01G;
+         for i=2:length(EFRTG)
+             EFRTG(i)=(1-gapsTGCumul(i-1))*P01G;
+         end
     end
 
 end
-trans = [0.8,0,0.2;
-       0, 0.7,0.3;
-      0.1,0.2,0.7]
-  emis=[1,0;1,0;0 1;]
-symbols=[0,1];
-p=[0.3 0.3 0.4]
-trans_hat = [0 p; zeros(size(trans,1),1) trans]
-
-emis_hat = [zeros(1,size(emis,2)); emis]
-maxIter=40;
-[estTR,estE] = hmmtrain(errSeq.',trans_hat,emis_hat,'Symbols',symbols,'Verbose',true,'MaxIterations',maxIter)
-genErrSeq=hmmgenerate(bitCount,  estTR,estE,'Symbols',symbols).';
-        [gapsF,gapsFCumul,P01F,diffF,unscaledF]=getGapDistribution(genErrSeq);
-         EFRF=zeros(diffF,1);
-         EFRF(1)=P01F;
-         for i=2:length(EFRF)
-             EFRF(i)=(1-gapsFCumul(i-1))*P01F;
-         end
-             barLimit=100;
-             if(barLimit>length(gapsT))
-                 barLimit=length(gapsT)
-             end
 legendStrings=cell(2,1);
 legendStrings{1}=['Turbulence Transmission model'];
-legendStrings{2}=[strcat(num2str(size(trans,1)),' state Fritchman model')];
+legendStrings{2}=['Gamma Gamma Transmission model'];
 clf
 nexttile;
-
+             barLimitT=100;
+             if(barLimitT>length(gapsT))
+                barLimitT=length(gapsT);
+             end
+                          barLimitG=100;
+             if(barLimitG>length(gapsTG))
+                barLimitG=length(gapsTG);
+             end
     bC1=bar(gapsTCumul );
   %  bC1.FaceAlpha = 0.2;
     hold on
-    bC2=bar(gapsFCumul );
+    bC2=bar(gapsTGCumul );
     bC2.FaceAlpha = 0.4;
     grid
     title('Cumulative distribution of gap lengths')
@@ -85,10 +92,10 @@ nexttile;
     legend(legendStrings);
     hold off
 nexttile;
-    bP1=bar(gapsT(1:barLimit) );
+    bP1=bar(gapsT(1:barLimitT) );
   %  bP1.FaceAlpha = 0.2;
     hold on
-    bP2=bar(gapsF(1:barLimit) );    
+    bP2=bar(gapsTG(1:barLimitG) );    
     bP2.FaceAlpha = 0.4;
     grid
     title('PDF of gap lengths')
@@ -97,10 +104,10 @@ nexttile;
     legend(legendStrings);
     hold off
 nexttile;
-    bPU1=bar(unscaledT(1:barLimit) );
+    bPU1=bar(unscaledT(1:barLimitT) );
    % bPU1.FaceAlpha = 0.2;
     hold on
-    bPU2=bar(unscaledF(1:barLimit) );
+    bPU2=bar(unscaledTG(1:barLimitG) );
     bPU2.FaceAlpha = 0.4;
     grid
     title('Distribution of gap lengths unscaled')
@@ -112,7 +119,7 @@ nexttile;
     bE1=bar(EFRT );
     %bE1.FaceAlpha = 0.2;
     hold on
-    bE2=bar(EFRF );
+    bE2=bar(EFRTG );
     bE2.FaceAlpha = 0.4;
     grid
     title('Distribution of error free length probabilities')

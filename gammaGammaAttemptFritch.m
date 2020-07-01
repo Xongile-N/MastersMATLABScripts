@@ -1,29 +1,36 @@
-clear all;
-clc;
-%delta=0.5;
-%c=0.1;
-beamSize=200;% default=w_ST = 200; 
+clear all 
+
+
 payloadSize=1000;
 packetCount=100;
 frameSize=1000;
-overheadThresh=1;
-        rng('shuffle');
+rng('shuffle');
 bitCount=payloadSize*packetCount;
 transmitFreq=1e5;
 samplesPerClock=4;
 samplingFreq=transmitFreq*4*samplesPerClock;
-upSampleFreq=samplingFreq*3;
+
 LFSRSeed=[1 0 1 0 1 1 1 0 1 0 1 0 1 0 0];
 LFSRPoly=[15 14 0];
- SNRS=(2:8)*2;
-
+SNRS=(2:8)*2;
 bitStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
 waveFormTX=OOK(bitStream,transmitFreq,samplingFreq);
-turbulence=turbulenceModelTime(samplingFreq,length(waveFormTX), upSampleFreq, false,overheadThresh,beamSize);
+regime=3%1=weak, 2=moderate, 3=strong
+alphaVec=[11.6,4,4.2];
+betaVec=[10.1,1.9,1.4];
+
+thresh=0.5;
+errVal=0.1;
+resolution=0.1
+turbulence=gammaTurb1(length(waveFormTX),alphaVec(regime),betaVec(regime),resolution);
+% turbulence=gammaTurb(length(waveFormTX),alphaVec(regime),betaVec(regime),thresh,errVal);
+% atten=find(turbulence==errVal);
+% length(atten)
+% length(atten)/length(turbulence)
 types=[ 0 0 1 0 0 1;...
     0 1 0 0 1 0];
-configs=[5];% choose which configs to test.
-SNRS=[3]
+configs=[6];% choose which configs to test.
+SNRS=[6]
 for index0=1:length(configs)
     count=configs(index0)
     for index =1:length(SNRS)
@@ -68,7 +75,7 @@ genErrSeq=hmmgenerate(bitCount,  estTR,estE,'Symbols',symbols).';
                  barLimit=length(gapsT)
              end
 legendStrings=cell(2,1);
-legendStrings{1}=['Turbulence Transmission model'];
+legendStrings{1}=['Gamma Gamma model'];
 legendStrings{2}=[strcat(num2str(size(trans,1)),' state Fritchman model')];
 clf
 nexttile;

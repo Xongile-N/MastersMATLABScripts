@@ -2,7 +2,8 @@ function [dist,cumul,P01,diff,unscaled] = getGapDistribution(errorSequence)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
     pos=find(errorSequence);
-    pos=[1; pos; length(errorSequence)];
+
+    pos=[0; pos; length(errorSequence)+1];
     posSort=sort(pos);
     diff=0;
     diffPos=1;

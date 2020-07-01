@@ -2,7 +2,7 @@ clear all
 
 
 payloadSize=1000;
-packetCount=10;
+packetCount=100;
 frameSize=1000;
 rng('shuffle');
 bitCount=payloadSize*packetCount;
@@ -15,19 +15,21 @@ LFSRPoly=[15 14 0];
 SNRS=(2:8)*2;
 bitStream=LFSR(LFSRSeed, LFSRPoly,bitCount);
 waveFormTX=OOK(bitStream,transmitFreq,samplingFreq);
-regime=3%1=weak, 2=moderate, 3=strong
+regime=1%1=weak, 2=moderate, 3=strong
 alphaVec=[11.6,4,4.2];
 betaVec=[10.1,1.9,1.4];
 
 thresh=0.5;
-errVal=0.3;
-turbulence=gammaTurb(length(waveFormTX),alphaVec(regime),betaVec(regime),thresh,errVal);
-atten=find(turbulence==errVal);
-length(atten)
-length(atten)/length(turbulence)
+errVal=0.1;
+resolution=0.1
+turbulence=gammaTurb1(length(waveFormTX),alphaVec(regime),betaVec(regime),resolution);
+% turbulence=gammaTurb(length(waveFormTX),alphaVec(regime),betaVec(regime),thresh,errVal);
+% atten=find(turbulence==errVal);
+% length(atten)
+% length(atten)/length(turbulence)
 types=[ 0 0 1 0 0 1;...
     0 1 0 0 1 0];
-configs=[5];% choose which configs to test.
+configs=[6];% choose which configs to test.
 SNRS=[3]
 for index0=1:length(configs)
     count=configs(index0)
