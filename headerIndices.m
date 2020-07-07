@@ -7,10 +7,17 @@ headerLength=length(header);
 indices=[];
 corrs=[];
 count=1;
+maximum=0;
+maximumPos=1;
 while count<dataLength-headerLength
     sample=dataBi(count:count+headerLength-1);
     corr=xcorr(sample,headerBi);
     corrMax=ceil(max(corr));
+    if(corrMax>maximum)
+        maximum=corrMax;
+        maximumPos=count;
+    end
+    
     if(corrMax>=thresh)
         indices(end+1)=count;
         corrs(end+1)=corrMax;
@@ -21,4 +28,6 @@ while count<dataLength-headerLength
     count=count+1;
 end
 indicesCorr=[indices;corrs].';
+maximum
+maximumPos
 

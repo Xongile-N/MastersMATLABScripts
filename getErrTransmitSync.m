@@ -41,13 +41,11 @@ useFrames=false;
 useBaseThresh=false;
 usePerfSquare=false;
 resBin=clockRecoveryFrame(valuesSim,frequency,sampleRate,usePerfSquare,useFrames,frameLength,useBaseThresh).';
-% headers=headerIndices(gold,resBin,  goldAutoCorr-3,goldAutoCorr);
-% headersCleaned=cleanHeaders(headers,goldLength);
-% headersCleaned=headersCleaned(:,1);
-% (headersCleaned-headersCleaned(1))/frameLength;
+headers=headerIndices(gold,resBin,  goldAutoCorr-3,goldAutoCorr);
+headersCleaned=cleanHeaders(headers,goldLength);
+headersCleaned=headersCleaned(:,1);
 trueHeaders=headerIndices(gold,packetStream,  goldAutoCorr-1,goldAutoCorr);%get header positions of
 trueHeadersCleaned=cleanHeaders(trueHeaders,goldLength);
 trueHeadersCleaned=trueHeadersCleaned(:,1);
-headersCleaned=[1;2;3;4];
-[BERS,avgBER,errSeq]=BER_packets_HRSync(headersCleaned,resBin.',packetStream);
+[BERS,avgBER,errSeq]=BER_packets_HRSyncNF(headersCleaned,resBin.',packetStream);
 [gaps,EFR,gapsCumul,unscaledGaps]=runLengthDisitrbution(errSeq);
