@@ -1,4 +1,4 @@
-function sequence = LFSRGaloisSyncHeader(seed,poly,totLength,header)
+function sequence = LFSRGaloisSyncHeader1(seed,poly,totLength,header,payloadLength)
 sequence=zeros(totLength,1);
 lfsr=seed;
 headerLength=length(header);

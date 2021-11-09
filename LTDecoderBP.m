@@ -1,15 +1,16 @@
-function [decodedPackets,decodedPacketsBool,decoded] = LTDecoderBP(receivedPackets,receivedPacketDetails,receivedPacketCount,totalPackets,decodedPacketsOrig,decodedPacketsOrigBool)
+function [decodedPackets,decodedPacketsBool,decoded] = LTDecoderBP(receivedPackets,receivedPacketDetails,receivedPacketCount,totalPackets,decodedPacketsOrig,decodedPacketsOrigBool,degrees,seeds)
 decoded=false;
 decodedPackets=decodedPacketsOrig;
 decodedPacketsBool=decodedPacketsOrigBool;
-if(isempty(find(receivedPacketDetails(:,1)==1))||totalPackets>receivedPacketCount)
+if(isempty(find(receivedPacketDetails(:,1)==1)))
     return
 end
 indices=zeros(receivedPacketCount,totalPackets);
 for count=1:receivedPacketCount
- rng(receivedPacketDetails(count,2));
- loopDeg=receivedPacketDetails(count,1);
- loopIndices=randi(totalPackets,loopDeg,1);
+ rng(seeds(count));
+ loopDeg=degrees(count);
+ loopIndices=randperm(totalPackets,loopDeg);
+
  for index=1:loopDeg
     indices(count,loopIndices(index))=bitxor(  indices(count,loopIndices(index)),1);
  end

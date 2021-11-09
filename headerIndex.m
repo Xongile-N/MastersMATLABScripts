@@ -1,11 +1,11 @@
-function indicesCorr = headerIndices(header,data,thresh,perfThresh)
+function headerIndex = headerIndices(header,data,thresh,perfThresh)
 %function to retrieve the indices of headers in a binary stream
 headerBi=header*2-1;
 dataBi=data*2-1;
 dataLength=length(data);
 headerLength=length(header);
-indices=[];
-corrs=[];
+index=1;
+corrFinal=0;
 count=1;
 maximum=0;
 maximumPos=1;
@@ -18,14 +18,14 @@ while count<dataLength-headerLength
         maximumPos=count;
     end
     
-    if(corrMax>=thresh)
-        indices(end+1)=count;
-        corrs(end+1)=corrMax;
+    if(corrMax>corrFinal)
+        index=count;
+        corrFinal=corrMax;
         if(corrMax>=perfThresh)
-            count=count+headerLength-2;
+            count=dataLength-headerLength-1;
         end
     end
     count=count+1;
 end
-indicesCorr=[indices;corrs].';
+headerIndex=[index;corrFinal].';
 

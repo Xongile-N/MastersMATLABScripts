@@ -30,3 +30,8 @@ codegen/
 # Octave session info
 octave-workspace
 *.mat
+*.bin
+*.png
+*.fig
+*.fig
+*.fig
