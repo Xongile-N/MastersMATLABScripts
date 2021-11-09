@@ -1,19 +1,25 @@
-simValues=real(values.data).';
-frequency=20000;
+filename = '20200724_Transmit_1509_1Mhz_10Khz_100K.bin';   %as appropriate
+Fs = 1000000;          %1 megabit/s data rate for basic DPSK ?
+[fid, msg] = fopen(filename, 'r');
+if fid < 0
+    error('Failed to open file "%s" because "%s"', filename, msg);
+end
+data = fread(fid, inf, '*float32');
+fclose(fid);
+valuesSim=data;
+frequency=2000;
 masterClock=100000000;
 decimFactor=100;
 sampleRate=masterClock/decimFactor;
 start=0*sampleRate+1;
-valuesSim=simValues(1:end);
 plotLower=100000000;
 plotUpper=plotLower+10000000;
-valuesSim=valuesSim(start:end);
 %pos=find(valuesSim>upper);
 %valuesSim(pos)=upper;
 
 clc
 train=false;
-frameCount=50-train;%
+frameCount=100-train;%
 payloadSize=1000;
 gold=[1,1,0,1,0,1,0,0,1,1,1,0,0,0,1,1,0,1,0,1,0,1,1,1,0,0,1,0,1,0,0];
 goldAutoCorr=31;
@@ -41,7 +47,9 @@ useFrames=false;
 useLargeFrame=true;
 useBaseThresh=false;
 usePerfSquare=false;
-[resBin,thresh,bitPos,sampler]=clockRecoveryFrame(valuesSim,frequency,sampleRate,usePerfSquare,useFrames,frameLength,useBaseThresh);
+thresh=0.15;
+valuesSim=valuesSim(12:end);
+[resBin,thresh,bitPos,sampler]=clockRecoveryFrame(valuesSim,frequency,sampleRate,usePerfSquare,useFrames,frameLength,useBaseThresh,thresh);
 resBin=resBin.';
 %resBin=clockRecoveryFrameLarge(valuesSim,frequency,sampleRate,usePerfSquare,useLargeFrame,bitCount,useBaseThresh).';
 headers=headerIndices(gold,resBin,  goldAutoCorr-4,goldAutoCorr);
