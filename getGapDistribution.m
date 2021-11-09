@@ -3,22 +3,21 @@ function [dist,cumul,P01,diff,unscaled] = getGapDistribution(errorSequence)
 %   Detailed explanation goes here
     pos=find(errorSequence);
 
-    pos=[0; pos; length(errorSequence)+1];
-    posSort=sort(pos);
+    pos=[pos; length(errorSequence)+1];
     diff=0;
     diffPos=1;
     diffPos2=1;
-    for posI=1:length(posSort)-1
-        if((posSort(posI+1)-posSort(posI))>diff)
-            diff=posSort(posI+1)-posSort(posI);
-            diffPos=posSort(posI);
-            diffPos2=posSort(posI+1);
+    for posI=1:length(pos)-1
+        if((pos(posI+1)-pos(posI))>diff)
+            diff=pos(posI+1)-pos(posI);
+            diffPos=pos(posI);
+            diffPos2=pos(posI+1);
 
         end
     end
     dist=zeros(diff,1);
-    for posI=1:length(posSort)-1
-        gapLength=(posSort(posI+1)-posSort(posI));
+    for posI=1:length(pos)-1
+        gapLength=(pos(posI+1)-pos(posI));
         dist(gapLength)=dist(gapLength)+1;
     end
     P01=sum(dist)/sum(errorSequence);
@@ -26,5 +25,6 @@ function [dist,cumul,P01,diff,unscaled] = getGapDistribution(errorSequence)
     dist=dist/sum(dist);
     %sum(errSeq(diffPos:diffPos2))
     cumul=cumsum(dist);
+    
 end
 
