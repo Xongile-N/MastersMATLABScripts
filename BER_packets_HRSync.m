@@ -1,24 +1,26 @@
-function [BERS,avgBER,errSeq] = BER_packets_HRSync(headersData,data,trueSeq)
-%UNTITLED Summary of this function goes here
+function [BERS,avgBER,errSeq] = BER_packets_HRSync(firstHeader,data,trueSeq)
+%UNTITLED Find BER using one headers
 %   Detailed explanation goes here
-BERS=zeros(length(headersData),1);
-errSeq=zeros(length(data)-headersData(1)+1,1);
+BERS=[];
+errSeq=[];
 trueSeqLength=length(trueSeq);
 index=1;
-endIndex=0;
-
+packetLength=trueSeqLength;
     notFinished=true;
-    
+    count=0;
 while (notFinished)
-    if(endIndex+trueSeqLength>=length(errSeq))
-        endIndex=length(errSeq);
+        currHeader=firstHeader+count*trueSeqLength;
+
+    if(packetLength>=length(data(currHeader:end)))
+        packetLength=length(data(currHeader:end));
         notFinished=false;
-    else
-        endIndex=endIndex+trueSeqLength;
     end
-    firstHeader=headersData(1)+(count-1)*trueSeqLength;
-    errSeq(index:endIndex)=bitxor(trueSeq(1:(endIndex-index)+1),data(firstHeader:firstHeader+trueSeqLength-1));
+    packet=data(currHeader:currHeader+packetLength-1);
+    loopErrSeq=bitxor(trueSeq(1:packetLength),packet);
+    BERS(end+1)=sum(loopErrSeq)/length(loopErrSeq);
+    errSeq=[errSeq; loopErrSeq];
     index=index+trueSeqLength;
+    count=count+1;
 
 
 end

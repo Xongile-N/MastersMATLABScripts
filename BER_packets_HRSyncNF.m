@@ -1,5 +1,5 @@
 function [BERS,avgBER,errSeq] = BER_packets_HRSyncNF(headersData,data,trueSeq)
-%UNTITLED Summary of this function goes here
+%UNTITLED Find BER using multiple headers
 %   Detailed explanation goes here
 BERS=zeros(length(headersData),1);
 seqLength=length(data);
@@ -9,7 +9,7 @@ index=1;
 endIndex=0;
 
    
-for count=1:length(headersData)
+for count=1:length(headersData)-1
     header=headersData(count);
         dataEnd=header+trueSeqLength-1;
     endIndex=endIndex+trueSeqLength;
