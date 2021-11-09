@@ -1,12 +1,12 @@
-function [distribution,cumulative] = RobustSoliton(K,delta,c)
+function [distribution,cumulative] = RobustSolitonQ(K,delta,Q)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 distribution=1:K;
 p_d=distribution;
 r_d=distribution;
-R=c*log(K/delta)*sqrt(K);
+
+R=K/Q;
 p_d(1)=1/K;
-Q=K/R;
 for count =2:K
 p_d(count)=1/(count*(count-1));
 end
@@ -24,7 +24,7 @@ Z=sum(p_d)+sum(r_d);
 distribution=(p_d+r_d)/Z;
 cumulative=cumsum(distribution);
 
-  %plot(1:K,distribution);
+ % plot(1:K,distribution);%
 
 end
 

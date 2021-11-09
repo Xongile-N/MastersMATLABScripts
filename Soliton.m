@@ -10,9 +10,9 @@ end
 distribution=(p_d);
 cumulative=cumsum(distribution);
  
- hold off
-  plot(1:K,distribution);
-  hold on
+% hold off
+  %plot(1:K,distribution);
+ % hold on
 %  plot(1:K,cumulative);
 
 end
