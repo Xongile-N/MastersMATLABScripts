@@ -1,4 +1,4 @@
-function [resBin,threshold,bitPos,iters] = clockRecoveryFrameSI(waveForm,baseFreq,Fs,perf, useFrames, frameSize, useBaseThresh, thresh)
+function [resBin,threshold,bitPos,iters,bitSamples] = clockRecoveryFrameSI(waveForm,baseFreq,Fs,perf, useFrames, frameSize, useBaseThresh, thresh)
 T=1/Fs;
 L=length(waveForm);
 timeBase = (0:L-1)*T;  
@@ -68,6 +68,7 @@ end
 sampleCount=round(halfPeriod/timeStep);
 symbols=ceil(baseSampleFreq*timeBase(end));
 resBin=zeros(symbols,1);
+bitSamples=cell(symbols,1);
 bitPos=resBin;
 sampler=samplingClock;
 if(useBaseThresh)
@@ -81,11 +82,9 @@ if(useBaseThresh)
             aveV=aveV/iterations;
             iterations;
             resBin(index)=aveV>threshold;
-                        bitPos(index)=count;
+            bitSamples(index)=mat2cell(waveForm(count-iterations:count).',1);
+            bitPos(index)=count;
             iters(end+1)=iterations;
-           if(iterations==75)
-               count
-           end
             aveV=0;
             iterations=0;
             sampling=false;
@@ -111,7 +110,8 @@ elseif(useFrames)
                             iters(end+1)=iterations;
 
                 resBin(index)=aveV>threshold;
-                            bitPos(index)=count;
+            bitSamples(index)=mat2cell(waveForm(count-iterations:count).',1);
+            bitPos(index)=count;
 
                 aveV=0;
                 iterations=0;
@@ -130,14 +130,12 @@ else
         elseif (sampling)
             aveV=aveV/iterations;
             iterations;
-          %  if(iterations>(sampleCount+0.1*sampleCount))
-           %     max(iters);
-           % end
+            bitSamples(index)=mat2cell(waveForm(count-iterations:count).',1);
+            bitPos(index)=count;
 
                         iters(end+1)=iterations;
 
             resBin(index)=aveV>threshold;
-            bitPos(index)=count;
             aveV=0;
             iterations=0;
             sampling=false;

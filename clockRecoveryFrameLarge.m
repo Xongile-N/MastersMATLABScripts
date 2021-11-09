@@ -1,45 +1,34 @@
-function [resBin,threshold,bitPos,iters] = clockRecoveryFrameSI(waveForm,baseFreq,Fs,perf, useFrames, frameSize, useBaseThresh, thresh)
+function [resBin,threshold] = clockRecoveryLarge(waveForm,baseFreq,Fs,perf, useFrames, frameSize, useBaseThresh)
 T=1/Fs;
 L=length(waveForm);
 timeBase = (0:L-1)*T;  
 baseSampleFreq=2*baseFreq;
 %baseSampleFreq=baseFreq;
-%disp('demodulation');
+useBaseThresh
+useFrames
 transition=false;
 high=false;
 basePeriod=1/baseSampleFreq;
 halfPeriod=basePeriod/2;
 timeElapsed=0;
 samplingClock=zeros(1,length(timeBase));
-iters=[];
+
 
 state=1;
 threshold=mean(waveForm);
-if(useBaseThresh)
-    threshold=thresh;
-end
+
 timeStep=abs(timeBase(4)-timeBase(3));
-clockThresh=threshold;
-symbols=0;
-     minGrad=(clockThresh/(timeStep*2));minGrad=15000;
 for count=1:length(samplingClock)
-    transition=bitxor(waveForm(count)>clockThresh,high);
-    if(transition&&count>1&&count<length(samplingClock))
-     grad=abs(waveForm(count-1)-waveForm(count+1))/timeStep;
-     transition=transition&grad>minGrad;
-    end
-    if(transition)
-        high=~high;
-
-        timeElapsed=0;
-        state=1;
-
-    elseif(timeElapsed>=halfPeriod)
-        timeElapsed=timeElapsed-halfPeriod;
-        state=mod(state+1,2);
-                symbols=symbols+1;
-
-    end
+    transition=bitxor(waveForm(count)<threshold,high);
+if(transition)
+    high=~high;
+    timeElapsed=0;
+    state=1;
+    
+elseif(timeElapsed>=halfPeriod)
+    timeElapsed=timeElapsed-halfPeriod;
+    state=mod(state+1,2);
+end
     samplingClock(count)=state;
     timeElapsed=timeElapsed+timeStep;
 end
@@ -55,23 +44,21 @@ if(perf)
     halfPeriod=basePeriod/2;
     timeStep=timeStep;
     timeElapsed=0;
-        for count=1:length(samplingClock)
-            if(timeElapsed>=halfPeriod)
-                timeElapsed=timeElapsed-halfPeriod;
-                state=mod(state+1,2);
-            end
-                samplingClock(count)=state;
-                timeElapsed=timeElapsed+timeStep;
-
+    for count=1:length(samplingClock)
+        if(timeElapsed>=halfPeriod)
+            timeElapsed=timeElapsed-halfPeriod;
+            state=mod(state+1,2);
         end
+            samplingClock(count)=state;
+            timeElapsed=timeElapsed+timeStep;
+
+    end
 end
 sampleCount=round(halfPeriod/timeStep);
 symbols=ceil(baseSampleFreq*timeBase(end));
 resBin=zeros(symbols,1);
-bitPos=resBin;
-sampler=samplingClock;
 if(useBaseThresh)
-    threshold=thresh;
+    threshold=1;
     for count=1:length(waveForm)
         if(samplingClock(count)==1)
             sampling=true;
@@ -81,11 +68,6 @@ if(useBaseThresh)
             aveV=aveV/iterations;
             iterations;
             resBin(index)=aveV>threshold;
-                        bitPos(index)=count;
-            iters(end+1)=iterations;
-           if(iterations==75)
-               count
-           end
             aveV=0;
             iterations=0;
             sampling=false;
@@ -108,11 +90,7 @@ elseif(useFrames)
             elseif (sampling)
                 aveV=aveV/iterations;
                 iterations;
-                            iters(end+1)=iterations;
-
                 resBin(index)=aveV>threshold;
-                            bitPos(index)=count;
-
                 aveV=0;
                 iterations=0;
                 sampling=false;
@@ -130,14 +108,7 @@ else
         elseif (sampling)
             aveV=aveV/iterations;
             iterations;
-          %  if(iterations>(sampleCount+0.1*sampleCount))
-           %     max(iters);
-           % end
-
-                        iters(end+1)=iterations;
-
             resBin(index)=aveV>threshold;
-            bitPos(index)=count;
             aveV=0;
             iterations=0;
             sampling=false;
@@ -146,8 +117,5 @@ else
     end
 
 end
-
-resBin=resBin(1:length(iters));
-disp('demodulation complete');
 end
 
